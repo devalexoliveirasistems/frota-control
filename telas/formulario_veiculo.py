@@ -6,6 +6,7 @@ from PySide6.QtWidgets import (
     QComboBox,
     QPushButton,
     QHBoxLayout,
+    QMessageBox,
 )
 
 from banco.sessao import SessionLocal
@@ -48,11 +49,26 @@ class FormularioVeiculo(QDialog):
             ]
         )
 
+        self.campo_status = QComboBox()
+        self.campo_status.addItems(
+            [
+                "Ativo",
+                "Em manutenção",
+                "Inativo",
+                "Vendido",
+            ]
+        )
+
         if self.veiculo:
             self.campo_placa.setText(self.veiculo.placa)
             self.campo_marca.setText(self.veiculo.marca)
             self.campo_modelo.setText(self.veiculo.modelo)
             self.campo_ano.setValue(self.veiculo.ano)
+
+            indice_status = self.campo_status.findText(self.veiculo.status)
+
+            if indice_status >= 0:
+                self.campo_status.setCurrentIndex(indice_status)
 
             indice = self.campo_tipo.findText(self.veiculo.tipo)
 
@@ -64,6 +80,7 @@ class FormularioVeiculo(QDialog):
         layout.addRow("Modelo:", self.campo_modelo)
         layout.addRow("Ano:", self.campo_ano)
         layout.addRow("Tipo:", self.campo_tipo)
+        layout.addRow("Status:", self.campo_status)
 
         linha_botoes = QHBoxLayout()
 
@@ -81,16 +98,60 @@ class FormularioVeiculo(QDialog):
         botao_salvar.clicked.connect(self.salvar)
 
     def salvar(self):
-        placa = self.campo_placa.text().strip()
+        placa = (
+            self.campo_placa.text().strip().upper().replace("-", "").replace(" ", "")
+        )
+        if len(placa) != 7 or not placa.isalnum():
+            QMessageBox.warning(
+                self,
+                "Placa inválida",
+                "Informe uma placa válida com 7 caracteres.",
+            )
+            return
         marca = self.campo_marca.text().strip()
         modelo = self.campo_modelo.text().strip()
         ano = self.campo_ano.value()
         tipo = self.campo_tipo.currentText()
+        status = self.campo_status.currentText()
 
-        if not placa or not marca or not modelo:
+        if not placa:
+            QMessageBox.warning(
+                self,
+                "Placa obrigatória",
+                "Informe a placa do veículo.",
+            )
+            return
+
+        if not marca:
+            QMessageBox.warning(
+                self,
+                "Marca obrigatória",
+                "Informe a marca do veículo.",
+            )
+            return
+
+        if not modelo:
+            QMessageBox.warning(
+                self,
+                "Modelo obrigatório",
+                "Informe o modelo do veículo.",
+            )
             return
 
         sessao = SessionLocal()
+
+        veiculo_existente = sessao.query(Veiculo).filter(Veiculo.placa == placa).first()
+
+        if veiculo_existente and (
+            not self.veiculo or veiculo_existente.id != self.veiculo.id
+        ):
+            QMessageBox.warning(
+                self,
+                "Placa já cadastrada",
+                f"A placa {placa} já está cadastrada em outro veículo.",
+            )
+            sessao.close()
+            return
 
         try:
             if self.veiculo:
@@ -109,6 +170,7 @@ class FormularioVeiculo(QDialog):
                     modelo=modelo,
                     ano=ano,
                     tipo=tipo,
+                    status=status,
                 )
 
             else:
@@ -119,6 +181,7 @@ class FormularioVeiculo(QDialog):
                     modelo=modelo,
                     ano=ano,
                     tipo=tipo,
+                    status=status,
                 )
 
             self.accept()

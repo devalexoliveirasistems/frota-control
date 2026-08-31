@@ -9,8 +9,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QLineEdit,
 )
-
-from PySide6.QtCore import QEvent
+from PySide6.QtCore import QEvent, Qt
 from banco.sessao import SessionLocal
 from banco.modelos import Veiculo
 from telas.formulario_veiculo import FormularioVeiculo
@@ -89,9 +88,10 @@ class Frota(QWidget):
             self.tabela.setRowCount(len(veiculos))
 
             for linha, veiculo in enumerate(veiculos):
-                self.tabela.setItem(
-                    linha, 0, QTableWidgetItem(str(veiculo.codigo_frota))
-                )
+                item_codigo = QTableWidgetItem(veiculo.codigo_frota)
+                item_codigo.setData(Qt.UserRole, veiculo.id)
+
+                self.tabela.setItem(linha, 0, item_codigo)
                 self.tabela.setItem(linha, 1, QTableWidgetItem(str(veiculo.id)))
                 self.tabela.setItem(linha, 2, QTableWidgetItem(veiculo.placa))
                 self.tabela.setItem(linha, 3, QTableWidgetItem(veiculo.marca))
@@ -108,7 +108,7 @@ class Frota(QWidget):
         for linha in range(self.tabela.rowCount()):
             encontrou = False
 
-            for coluna in range(1, 7):
+            for coluna in range(0, 8):
                 item = self.tabela.item(linha, coluna)
 
                 if item and texto in item.text().lower():
@@ -129,7 +129,7 @@ class Frota(QWidget):
         if linha < 0:
             return
 
-        id_veiculo = int(self.tabela.item(linha, 0).text())
+        id_veiculo = self.tabela.item(linha, 0).data(Qt.UserRole)
 
         sessao = SessionLocal()
 
@@ -145,12 +145,12 @@ class Frota(QWidget):
             )
 
             if formulario.exec():
-                self.tabela.setItem(linha, 1, QTableWidgetItem(veiculo.placa))
-                self.tabela.setItem(linha, 2, QTableWidgetItem(veiculo.marca))
-                self.tabela.setItem(linha, 3, QTableWidgetItem(veiculo.modelo))
-                self.tabela.setItem(linha, 4, QTableWidgetItem(str(veiculo.ano)))
-                self.tabela.setItem(linha, 5, QTableWidgetItem(veiculo.tipo))
-                self.tabela.setItem(linha, 6, QTableWidgetItem(veiculo.status))
+                self.tabela.setItem(linha, 2, QTableWidgetItem(veiculo.placa))
+                self.tabela.setItem(linha, 3, QTableWidgetItem(veiculo.marca))
+                self.tabela.setItem(linha, 4, QTableWidgetItem(veiculo.modelo))
+                self.tabela.setItem(linha, 5, QTableWidgetItem(str(veiculo.ano)))
+                self.tabela.setItem(linha, 6, QTableWidgetItem(veiculo.tipo))
+                self.tabela.setItem(linha, 7, QTableWidgetItem(veiculo.status))
 
         finally:
             sessao.close()
@@ -166,8 +166,8 @@ class Frota(QWidget):
             )
             return
 
-        id_veiculo = int(self.tabela.item(linha, 0).text())
-        placa = self.tabela.item(linha, 1).text()
+        id_veiculo = self.tabela.item(linha, 0).data(Qt.UserRole)
+        placa = self.tabela.item(linha, 2).text()
 
         resposta = QMessageBox.question(
             self,
@@ -215,15 +215,6 @@ class Frota(QWidget):
 
         finally:
             sessao.close()
-
-    def atualizar_linha(self, linha, veiculo):
-        self.tabela.setItem(linha, 0, QTableWidgetItem(str(veiculo.id)))
-        self.tabela.setItem(linha, 1, QTableWidgetItem(veiculo.placa))
-        self.tabela.setItem(linha, 2, QTableWidgetItem(veiculo.marca))
-        self.tabela.setItem(linha, 3, QTableWidgetItem(veiculo.modelo))
-        self.tabela.setItem(linha, 4, QTableWidgetItem(str(veiculo.ano)))
-        self.tabela.setItem(linha, 5, QTableWidgetItem(veiculo.tipo))
-        self.tabela.setItem(linha, 6, QTableWidgetItem(veiculo.status))
 
     def eventFilter(self, objeto, evento):
         if (

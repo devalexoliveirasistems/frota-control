@@ -2,6 +2,8 @@ from sqlalchemy.orm import Session
 
 from banco.modelos import Veiculo
 
+from sqlalchemy import text
+
 
 def cadastrar_veiculo(
     sessao: Session,
@@ -10,26 +12,26 @@ def cadastrar_veiculo(
     modelo: str,
     ano: int,
     tipo: str,
+    status: str,
 ):
-    codigos = (
-        sessao.query(Veiculo.codigo_frota).order_by(Veiculo.codigo_frota.asc()).all()
-    )
+    resultado = sessao.execute(text("""
+            UPDATE controle_frota
+            SET proximo_numero = proximo_numero + 1
+            WHERE id = 1
+            RETURNING proximo_numero - 1
+            """))
 
-    proximo_codigo = 1
-
-    for (codigo,) in codigos:
-        if codigo == proximo_codigo:
-            proximo_codigo += 1
-        elif codigo > proximo_codigo:
-            break
+    numero = resultado.scalar_one()
+    codigo_frota = f"AAA-{numero:03d}"
 
     veiculo = Veiculo(
-        codigo_frota=proximo_codigo,
+        codigo_frota=codigo_frota,
         placa=placa,
         marca=marca,
         modelo=modelo,
         ano=ano,
         tipo=tipo,
+        status=status,
     )
 
     sessao.add(veiculo)
@@ -47,12 +49,14 @@ def atualizar_veiculo(
     modelo: str,
     ano: int,
     tipo: str,
+    status: str,
 ):
     veiculo.placa = placa
     veiculo.marca = marca
     veiculo.modelo = modelo
     veiculo.ano = ano
     veiculo.tipo = tipo
+    veiculo.status = status
 
     sessao.commit()
     sessao.refresh(veiculo)
