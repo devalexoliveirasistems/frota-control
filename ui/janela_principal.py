@@ -10,6 +10,7 @@
 
 from telas.dashboard import Dashboard
 from telas.frota import Frota
+from telas.fretes import Fretes
 
 
 class MainWindow(QMainWindow):
@@ -37,6 +38,7 @@ class MainWindow(QMainWindow):
 
         botao_dashboard = QPushButton("Dashboard")
         botao_frota = QPushButton("Frota")
+        botao_fretes = QPushButton("Fretes")
         botao_motoristas = QPushButton("Motoristas")
         botao_manutencao = QPushButton("Manutenção")
         botao_abastecimento = QPushButton("Abastecimento")
@@ -44,6 +46,7 @@ class MainWindow(QMainWindow):
 
         menu_layout.addWidget(botao_dashboard)
         menu_layout.addWidget(botao_frota)
+        menu_layout.addWidget(botao_fretes)
         menu_layout.addWidget(botao_motoristas)
         menu_layout.addWidget(botao_manutencao)
         menu_layout.addWidget(botao_abastecimento)
@@ -59,7 +62,10 @@ class MainWindow(QMainWindow):
 
         botao_frota.clicked.connect(
             lambda: self.stack.setCurrentWidget(self.tela_frota)
-)
+        )
+        botao_fretes.clicked.connect(
+            lambda: self.stack.setCurrentWidget(self.tela_fretes)
+        )
 
         # ÁREA PRINCIPAL
         # ÁREA PRINCIPAL
@@ -70,9 +76,11 @@ class MainWindow(QMainWindow):
 
         self.tela_dashboard = Dashboard()
         self.tela_frota = Frota()
+        self.tela_fretes = Fretes()
 
         self.stack.addWidget(self.tela_dashboard)
         self.stack.addWidget(self.tela_frota)
+        self.stack.addWidget(self.tela_fretes)
 
         conteudo_layout.addWidget(self.stack)
 
