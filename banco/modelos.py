@@ -1,6 +1,7 @@
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy import String, Integer, ForeignKey
+from sqlalchemy import String, Integer, ForeignKey, Date, Numeric
 from sqlalchemy.orm import Mapped, mapped_column
+from datetime import date
 
 
 class Base(DeclarativeBase):
@@ -29,6 +30,73 @@ class Veiculo(Base):
     tipo: Mapped[str] = mapped_column(String(50), nullable=False)
 
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="Ativo")
+
+
+class Frete(Base):
+    __tablename__ = "fretes"
+
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+    )
+
+    dia: Mapped[date] = mapped_column(
+        Date,
+        nullable=False,
+    )
+
+    ordem_servico: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+    )
+
+    transportadora: Mapped[str] = mapped_column(
+        String(150),
+        nullable=False,
+    )
+
+    embarque: Mapped[str] = mapped_column(
+        String(150),
+        nullable=False,
+    )
+
+    destino: Mapped[str] = mapped_column(
+        String(150),
+        nullable=False,
+    )
+
+    veiculo_id: Mapped[int] = mapped_column(
+        ForeignKey("veiculos.id"),
+        nullable=False,
+    )
+
+    valor_frete: Mapped[float] = mapped_column(
+        Numeric(12, 2),
+        nullable=False,
+    )
+
+    pedagio: Mapped[float] = mapped_column(
+        Numeric(12, 2),
+        nullable=False,
+        default=0,
+    )
+
+    adiantamento: Mapped[float] = mapped_column(
+        Numeric(12, 2),
+        nullable=False,
+        default=0,
+    )
+
+    saldo: Mapped[float | None] = mapped_column(
+        Numeric(12, 2),
+        nullable=True,
+    )
+
+    status: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        default="Pendente",
+    )
 
 
 class Empresa(Base):

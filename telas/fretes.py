@@ -8,12 +8,17 @@ from PySide6.QtWidgets import (
     QComboBox,
     QDateEdit,
     QTableWidget,
+    QTableWidgetItem,
     QGroupBox,
     QHeaderView,
+    QMessageBox,
 )
 
 from PySide6.QtCore import QDate, Qt
 from PySide6.QtGui import QKeyEvent
+
+from banco.sessao import SessionLocal
+from banco.modelos import Frete, Veiculo
 
 
 class TabelaFretes(QTableWidget):
@@ -105,8 +110,13 @@ class Fretes(QWidget):
         self.campo_destino = QLineEdit()
         self.campo_destino.setPlaceholderText("Local destino da carga")
 
-        self.campo_placa = QLineEdit()
-        self.campo_placa.setPlaceholderText("Placa do caminhão")
+        self.campo_placa = QComboBox()
+        self.campo_placa.addItem(
+            "Selecione a placa",
+            None,
+        )
+
+        self.carregar_placas()
 
         linha_2.addWidget(QLabel("Embarque"))
         linha_2.addWidget(self.campo_embarque, 2)
@@ -130,8 +140,9 @@ class Fretes(QWidget):
 
         self.campo_adiantamento = QLineEdit()
         self.campo_adiantamento.setPlaceholderText("Valor do adiantamento")
+
         self.campo_saldo = QLineEdit()
-        self.campo_saldo.setPlaceholderText("Saldo recebido (após descarga)")
+        self.campo_saldo.setPlaceholderText("Saldo recebido após descarga")
 
         self.campo_status = QComboBox()
         self.campo_status.addItems(
@@ -148,6 +159,9 @@ class Fretes(QWidget):
             ]
         )
 
+        # Deixa o fluxo mais natural para lançamento inicial.
+        self.campo_status.setCurrentText("Aguardando saldo")
+
         linha_3.addWidget(QLabel("Frete"))
         linha_3.addWidget(self.campo_frete)
 
@@ -156,6 +170,9 @@ class Fretes(QWidget):
 
         linha_3.addWidget(QLabel("Adiantamento"))
         linha_3.addWidget(self.campo_adiantamento)
+
+        linha_3.addWidget(QLabel("Saldo"))
+        linha_3.addWidget(self.campo_saldo)
 
         linha_3.addWidget(QLabel("Status"))
         linha_3.addWidget(self.campo_status, 2)
@@ -186,6 +203,7 @@ class Fretes(QWidget):
         layout_fretes = QVBoxLayout()
 
         self.tabela_fretes = TabelaFretes()
+
         self.tabela_fretes.setColumnCount(11)
 
         self.tabela_fretes.setHorizontalHeaderLabels(
@@ -205,38 +223,46 @@ class Fretes(QWidget):
         )
 
         self.tabela_fretes.setAlternatingRowColors(True)
+
         self.tabela_fretes.setSelectionBehavior(QTableWidget.SelectItems)
+
         self.tabela_fretes.setFocusPolicy(Qt.StrongFocus)
+
         cabecalho = self.tabela_fretes.horizontalHeader()
 
         cabecalho.setSectionResizeMode(QHeaderView.Interactive)
 
-        self.tabela_fretes.setColumnWidth(0, 100)  # Dia
-        self.tabela_fretes.setColumnWidth(1, 130)  # OS
-        self.tabela_fretes.setColumnWidth(2, 220)  # Transportadora
-        self.tabela_fretes.setColumnWidth(3, 180)  # Embarque
-        self.tabela_fretes.setColumnWidth(4, 180)  # Destino
-        self.tabela_fretes.setColumnWidth(5, 110)  # Placa
-        self.tabela_fretes.setColumnWidth(6, 130)  # Frete
-        self.tabela_fretes.setColumnWidth(7, 120)  # Pedágio
-        self.tabela_fretes.setColumnWidth(8, 150)  # Adiantamento
-        self.tabela_fretes.setColumnWidth(9, 130)  # Saldo
-        self.tabela_fretes.setColumnWidth(10, 190)  # Status
+        self.tabela_fretes.setColumnWidth(0, 100)
+        self.tabela_fretes.setColumnWidth(1, 130)
+        self.tabela_fretes.setColumnWidth(2, 220)
+        self.tabela_fretes.setColumnWidth(3, 180)
+        self.tabela_fretes.setColumnWidth(4, 180)
+        self.tabela_fretes.setColumnWidth(5, 110)
+        self.tabela_fretes.setColumnWidth(6, 130)
+        self.tabela_fretes.setColumnWidth(7, 120)
+        self.tabela_fretes.setColumnWidth(8, 150)
+        self.tabela_fretes.setColumnWidth(9, 130)
+        self.tabela_fretes.setColumnWidth(10, 190)
 
         layout_fretes.addWidget(self.tabela_fretes)
 
         caixa_fretes.setLayout(layout_fretes)
 
-        layout_principal.addWidget(caixa_fretes, 1)
+        layout_principal.addWidget(
+            caixa_fretes,
+            1,
+        )
 
         # ==================================
         # CAIXA DE COMISSÕES
         # ==================================
 
         caixa_comissoes = QGroupBox("Comissões dos Motoristas")
+
         layout_comissoes = QVBoxLayout()
 
         self.tabela_comissoes = QTableWidget()
+
         self.tabela_comissoes.setColumnCount(6)
 
         self.tabela_comissoes.setHorizontalHeaderLabels(
@@ -251,7 +277,9 @@ class Fretes(QWidget):
         )
 
         self.tabela_comissoes.setAlternatingRowColors(True)
+
         self.tabela_comissoes.setSelectionBehavior(QTableWidget.SelectRows)
+
         self.tabela_comissoes.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeToContents
         )
@@ -260,6 +288,278 @@ class Fretes(QWidget):
 
         caixa_comissoes.setLayout(layout_comissoes)
 
-        layout_principal.addWidget(caixa_comissoes, 1)
+        layout_principal.addWidget(
+            caixa_comissoes,
+            1,
+        )
 
         self.setLayout(layout_principal)
+
+        # ==================================
+        # EVENTOS
+        # ==================================
+
+        botao_lancar.clicked.connect(self.lancar_frete)
+
+        # ==================================
+        # CARREGAMENTO INICIAL
+        # ==================================
+
+        self.carregar_fretes()
+
+    # ======================================
+    # PLACAS
+    # ======================================
+
+    def carregar_placas(self):
+        sessao = SessionLocal()
+
+        try:
+            veiculos = (
+                sessao.query(Veiculo)
+                .filter(Veiculo.status == "Ativo")
+                .order_by(Veiculo.placa.asc())
+                .all()
+            )
+
+            for veiculo in veiculos:
+                self.campo_placa.addItem(
+                    veiculo.placa,
+                    veiculo.id,
+                )
+
+        finally:
+            sessao.close()
+
+    # ======================================
+    # CONVERTER VALOR
+    # ======================================
+
+    def converter_valor(self, texto):
+        texto = texto.strip()
+
+        if not texto:
+            return 0.0
+
+        texto = texto.replace(
+            "R$",
+            "",
+        ).strip()
+
+        texto = texto.replace(
+            ".",
+            "",
+        )
+
+        texto = texto.replace(
+            ",",
+            ".",
+        )
+
+        return float(texto)
+
+    # ======================================
+    # LANÇAR FRETE
+    # ======================================
+
+    def lancar_frete(self):
+        try:
+            ordem_servico = self.campo_os.text().strip()
+
+            transportadora = self.campo_transportadora.text().strip()
+
+            embarque = self.campo_embarque.text().strip()
+
+            destino = self.campo_destino.text().strip()
+
+            veiculo_id = self.campo_placa.currentData()
+
+            valor_frete = self.converter_valor(self.campo_frete.text())
+
+            pedagio = self.converter_valor(self.campo_pedagio.text())
+
+            adiantamento = self.converter_valor(self.campo_adiantamento.text())
+
+            saldo_texto = self.campo_saldo.text().strip()
+
+            if saldo_texto:
+                saldo = self.converter_valor(saldo_texto)
+            else:
+                saldo = None
+
+            if not ordem_servico:
+                QMessageBox.warning(
+                    self,
+                    "Campo obrigatório",
+                    "Informe o número da OS.",
+                )
+                return
+
+            if not transportadora:
+                QMessageBox.warning(
+                    self,
+                    "Campo obrigatório",
+                    "Informe a transportadora.",
+                )
+                return
+
+            if not embarque:
+                QMessageBox.warning(
+                    self,
+                    "Campo obrigatório",
+                    "Informe o local de embarque.",
+                )
+                return
+
+            if not destino:
+                QMessageBox.warning(
+                    self,
+                    "Campo obrigatório",
+                    "Informe o local de destino.",
+                )
+                return
+
+            if veiculo_id is None:
+                QMessageBox.warning(
+                    self,
+                    "Campo obrigatório",
+                    "Selecione a placa do caminhão.",
+                )
+                return
+
+            if valor_frete <= 0:
+                QMessageBox.warning(
+                    self,
+                    "Valor inválido",
+                    "Informe um valor de frete maior que zero.",
+                )
+                return
+
+            sessao = SessionLocal()
+
+            try:
+                frete = Frete(
+                    dia=self.campo_dia.date().toPython(),
+                    ordem_servico=ordem_servico,
+                    transportadora=transportadora,
+                    embarque=embarque,
+                    destino=destino,
+                    veiculo_id=veiculo_id,
+                    valor_frete=valor_frete,
+                    pedagio=pedagio,
+                    adiantamento=adiantamento,
+                    saldo=saldo,
+                    status=self.campo_status.currentText(),
+                )
+
+                sessao.add(frete)
+                sessao.commit()
+
+            except Exception:
+                sessao.rollback()
+                raise
+
+            finally:
+                sessao.close()
+
+            self.carregar_fretes()
+            self.limpar_lancamento()
+
+            QMessageBox.information(
+                self,
+                "Frete lançado",
+                "Frete lançado com sucesso.",
+            )
+
+        except ValueError:
+            QMessageBox.warning(
+                self,
+                "Valor inválido",
+                "Confira os valores de frete, pedágio, adiantamento e saldo.",
+            )
+
+        except Exception as erro:
+            QMessageBox.critical(
+                self,
+                "Erro ao lançar frete",
+                f"Não foi possível lançar o frete:\n\n{erro}",
+            )
+
+    # ======================================
+    # CARREGAR FRETES
+    # ======================================
+
+    def carregar_fretes(self):
+        sessao = SessionLocal()
+
+        try:
+            fretes = (
+                sessao.query(Frete, Veiculo.placa)
+                .join(
+                    Veiculo,
+                    Frete.veiculo_id == Veiculo.id,
+                )
+                .order_by(Frete.id.asc())
+                .all()
+            )
+
+            self.tabela_fretes.setRowCount(len(fretes))
+
+            for linha, resultado in enumerate(fretes):
+                frete, placa = resultado
+
+                dados = [
+                    frete.dia.strftime("%d/%m/%Y"),
+                    frete.ordem_servico,
+                    frete.transportadora,
+                    frete.embarque,
+                    frete.destino,
+                    placa,
+                    self.formatar_moeda(frete.valor_frete),
+                    self.formatar_moeda(frete.pedagio),
+                    self.formatar_moeda(frete.adiantamento),
+                    ("" if frete.saldo is None else self.formatar_moeda(frete.saldo)),
+                    frete.status,
+                ]
+
+                for coluna, valor in enumerate(dados):
+                    item = QTableWidgetItem(str(valor))
+
+                    self.tabela_fretes.setItem(
+                        linha,
+                        coluna,
+                        item,
+                    )
+
+        finally:
+            sessao.close()
+
+    # ======================================
+    # FORMATAR MOEDA
+    # ======================================
+
+    def formatar_moeda(self, valor):
+        return (
+            f"R$ {float(valor):,.2f}".replace(",", "X")
+            .replace(".", ",")
+            .replace("X", ".")
+        )
+
+    # ======================================
+    # LIMPAR LANÇAMENTO
+    # ======================================
+
+    def limpar_lancamento(self):
+        self.campo_os.clear()
+        self.campo_transportadora.clear()
+        self.campo_embarque.clear()
+        self.campo_destino.clear()
+
+        self.campo_placa.setCurrentIndex(0)
+
+        self.campo_frete.clear()
+        self.campo_pedagio.clear()
+        self.campo_adiantamento.clear()
+        self.campo_saldo.clear()
+
+        self.campo_status.setCurrentText("Aguardando saldo")
