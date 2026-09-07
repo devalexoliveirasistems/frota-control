@@ -56,6 +56,16 @@ class Motorista(Base):
         nullable=True,
     )
 
+    categoria_cnh: Mapped[str | None] = mapped_column(
+        String(5),
+        nullable=True,
+    )
+
+    validade_cnh: Mapped[date | None] = mapped_column(
+        Date,
+        nullable=True,
+    )
+
     status: Mapped[str] = mapped_column(
         String(20),
         nullable=False,
