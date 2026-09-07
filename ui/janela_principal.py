@@ -11,6 +11,7 @@
 from telas.dashboard import Dashboard
 from telas.frota import Frota
 from telas.fretes import Fretes
+from telas.motoristas import Motoristas
 
 
 class MainWindow(QMainWindow):
@@ -66,8 +67,10 @@ class MainWindow(QMainWindow):
         botao_fretes.clicked.connect(
             lambda: self.stack.setCurrentWidget(self.tela_fretes)
         )
+        botao_motoristas.clicked.connect(
+            lambda: self.stack.setCurrentWidget(self.tela_motoristas)
+        )
 
-        # ÁREA PRINCIPAL
         # ÁREA PRINCIPAL
         conteudo = QWidget()
         conteudo_layout = QVBoxLayout(conteudo)
@@ -78,9 +81,12 @@ class MainWindow(QMainWindow):
         self.tela_frota = Frota()
         self.tela_fretes = Fretes()
 
+        self.tela_motoristas = Motoristas()
+
         self.stack.addWidget(self.tela_dashboard)
         self.stack.addWidget(self.tela_frota)
         self.stack.addWidget(self.tela_fretes)
+        self.stack.addWidget(self.tela_motoristas)
 
         conteudo_layout.addWidget(self.stack)
 

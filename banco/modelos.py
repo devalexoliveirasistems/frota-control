@@ -32,6 +32,37 @@ class Veiculo(Base):
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="Ativo")
 
 
+class Motorista(Base):
+    __tablename__ = "motoristas"
+
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+    )
+
+    nome: Mapped[str] = mapped_column(
+        String(150),
+        nullable=False,
+    )
+
+    cpf: Mapped[str] = mapped_column(
+        String(14),
+        unique=True,
+        nullable=False,
+    )
+
+    telefone: Mapped[str] = mapped_column(
+        String(20),
+        nullable=True,
+    )
+
+    status: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        default="Ativo",
+    )
+
+
 class Frete(Base):
     __tablename__ = "fretes"
 

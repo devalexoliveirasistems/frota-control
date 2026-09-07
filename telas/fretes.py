@@ -19,6 +19,7 @@ from PySide6.QtGui import QKeyEvent
 
 from banco.sessao import SessionLocal
 from banco.modelos import Frete, Veiculo
+from telas.edicao_frete import EdicaoFrete
 
 
 class TabelaFretes(QTableWidget):
@@ -85,7 +86,7 @@ class Fretes(QWidget):
         self.campo_dia.setDate(QDate.currentDate())
 
         self.campo_os = QLineEdit()
-        self.campo_os.setPlaceholderText("Nº da OS")
+        self.campo_os.setPlaceholderText("N° Contrato")
 
         self.campo_transportadora = QLineEdit()
         self.campo_transportadora.setPlaceholderText("Transportadora")
@@ -135,14 +136,38 @@ class Fretes(QWidget):
         self.campo_frete = QLineEdit()
         self.campo_frete.setPlaceholderText("Valor total do frete")
 
+        self.campo_frete.editingFinished.connect(
+            lambda: self.campo_frete.setText(
+                self.formatar_entrada_moeda(self.campo_frete.text())
+            )
+        )
+
         self.campo_pedagio = QLineEdit()
         self.campo_pedagio.setPlaceholderText("Valor do pedágio")
+
+        self.campo_pedagio.editingFinished.connect(
+            lambda: self.campo_pedagio.setText(
+                self.formatar_entrada_moeda(self.campo_pedagio.text())
+            )
+        )
 
         self.campo_adiantamento = QLineEdit()
         self.campo_adiantamento.setPlaceholderText("Valor do adiantamento")
 
+        self.campo_adiantamento.editingFinished.connect(
+            lambda: self.campo_adiantamento.setText(
+                self.formatar_entrada_moeda(self.campo_adiantamento.text())
+            )
+        )
+
         self.campo_saldo = QLineEdit()
         self.campo_saldo.setPlaceholderText("Saldo recebido após descarga")
+
+        self.campo_saldo.editingFinished.connect(
+            lambda: self.campo_saldo.setText(
+                self.formatar_entrada_moeda(self.campo_saldo.text())
+            )
+        )
 
         self.campo_status = QComboBox()
         self.campo_status.addItems(
@@ -188,6 +213,11 @@ class Fretes(QWidget):
 
         linha_botao.addWidget(botao_lancar)
 
+        botao_editar = QPushButton("Editar frete")
+        botao_editar.setMinimumWidth(140)
+
+        linha_botao.addWidget(botao_editar)
+
         layout_lancamento.addLayout(linha_botao)
 
         caixa_lancamento.setLayout(layout_lancamento)
@@ -203,13 +233,14 @@ class Fretes(QWidget):
         layout_fretes = QVBoxLayout()
 
         self.tabela_fretes = TabelaFretes()
+        self.tabela_fretes.setEditTriggers(QTableWidget.NoEditTriggers)
 
         self.tabela_fretes.setColumnCount(11)
 
         self.tabela_fretes.setHorizontalHeaderLabels(
             [
                 "Dia",
-                "OS",
+                "N° Contrato",
                 "Transportadora",
                 "Embarque",
                 "Destino",
@@ -224,7 +255,9 @@ class Fretes(QWidget):
 
         self.tabela_fretes.setAlternatingRowColors(True)
 
-        self.tabela_fretes.setSelectionBehavior(QTableWidget.SelectItems)
+        self.tabela_fretes.setSelectionBehavior(QTableWidget.SelectRows)
+
+        self.tabela_fretes.setSelectionMode(QTableWidget.SingleSelection)
 
         self.tabela_fretes.setFocusPolicy(Qt.StrongFocus)
 
@@ -301,6 +334,8 @@ class Fretes(QWidget):
 
         botao_lancar.clicked.connect(self.lancar_frete)
 
+        botao_editar.clicked.connect(self.editar_frete)
+
         # ==================================
         # CARREGAMENTO INICIAL
         # ==================================
@@ -357,6 +392,23 @@ class Fretes(QWidget):
         )
 
         return float(texto)
+
+    # ======================================
+    # FORMATAR ENTRADA DE MOEDA
+    # ======================================
+
+    def formatar_entrada_moeda(self, texto):
+        texto = texto.replace("R$", "").strip()
+
+        if not texto:
+            return ""
+
+        try:
+            valor = float(texto.replace(".", "").replace(",", "."))
+        except ValueError:
+            return texto
+
+        return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
     # ======================================
     # LANÇAR FRETE
@@ -465,11 +517,13 @@ class Fretes(QWidget):
             self.carregar_fretes()
             self.limpar_lancamento()
 
-            QMessageBox.information(
-                self,
-                "Frete lançado",
-                "Frete lançado com sucesso.",
+            janela = EdicaoFrete(
+                frete=frete,
+                parent=self,
             )
+
+            if janela.exec():
+                self.carregar_fretes()
 
         except ValueError:
             QMessageBox.warning(
@@ -525,11 +579,62 @@ class Fretes(QWidget):
                 for coluna, valor in enumerate(dados):
                     item = QTableWidgetItem(str(valor))
 
+                    if coluna == 0:
+                        item.setData(
+                            Qt.UserRole,
+                            frete.id,
+                        )
+
                     self.tabela_fretes.setItem(
                         linha,
                         coluna,
                         item,
                     )
+
+        finally:
+            sessao.close()
+
+    def editar_frete(self):
+        linha = self.tabela_fretes.currentRow()
+
+        if linha < 0:
+            QMessageBox.warning(
+                self,
+                "Nenhum frete selecionado",
+                "Selecione um frete para editar.",
+            )
+            return
+
+        item = self.tabela_fretes.item(
+            linha,
+            0,
+        )
+
+        if not item:
+            return
+
+        id_frete = item.data(Qt.UserRole)
+
+        sessao = SessionLocal()
+
+        try:
+            frete = sessao.query(Frete).filter(Frete.id == id_frete).first()
+
+            if not frete:
+                QMessageBox.warning(
+                    self,
+                    "Frete não encontrado",
+                    "O frete selecionado não foi encontrado no banco.",
+                )
+                return
+
+            janela = EdicaoFrete(
+                frete=frete,
+                parent=self,
+            )
+
+            if janela.exec():
+                self.carregar_fretes()
 
         finally:
             sessao.close()
