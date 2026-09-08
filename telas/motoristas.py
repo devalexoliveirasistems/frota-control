@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
     QHeaderView,
     QGroupBox,
     QFileDialog,
+    QGridLayout,
 )
 
 from banco.sessao import SessionLocal
@@ -41,6 +42,11 @@ class Motoristas(QWidget):
         card_cadastro = QGroupBox("Cadastro de Motorista")
         layout_cadastro = QVBoxLayout()
 
+        grade_cards = QGridLayout()
+
+        card_pessoais = QGroupBox("Dados Pessoais")
+        layout_pessoais = QVBoxLayout()
+
         self.campo_nome = QLineEdit()
         self.campo_nome.setPlaceholderText("Nome do motorista")
 
@@ -60,31 +66,112 @@ class Motoristas(QWidget):
 
         botao_novo = QPushButton("Cadastrar motorista")
 
-        linha_dados = QHBoxLayout()
+        layout_pessoais.addWidget(QLabel("Nome"))
 
-        self.campo_nome.setMinimumWidth(300)
-        self.campo_cpf.setMinimumWidth(180)
-        self.campo_telefone.setMinimumWidth(180)
+        layout_pessoais.addWidget(self.campo_nome)
 
-        linha_dados.addWidget(
-            self.campo_nome,
+        layout_pessoais.addWidget(QLabel("CPF"))
+
+        layout_pessoais.addWidget(self.campo_cpf)
+
+        layout_pessoais.addWidget(QLabel("Telefone"))
+
+        layout_pessoais.addWidget(self.campo_telefone)
+
+        layout_pessoais.addWidget(QLabel("Status"))
+
+        layout_pessoais.addWidget(self.campo_status)
+
+        card_pessoais.setLayout(layout_pessoais)
+
+        grade_cards.addWidget(
+            card_pessoais,
+            0,
+            0,
         )
 
-        linha_dados.addWidget(
-            self.campo_cpf,
+        # =========================
+        # ENDEREÇO
+        # =========================
+
+        card_endereco = QGroupBox("Endereço")
+        layout_endereco = QVBoxLayout()
+
+        self.campo_cep = QLineEdit()
+        self.campo_cep.setPlaceholderText("CEP")
+
+        self.campo_logradouro = QLineEdit()
+        self.campo_logradouro.setPlaceholderText("Logradouro")
+
+        self.campo_numero = QLineEdit()
+        self.campo_numero.setPlaceholderText("Número")
+
+        self.campo_complemento = QLineEdit()
+        self.campo_complemento.setPlaceholderText("Complemento")
+
+        self.campo_bairro = QLineEdit()
+        self.campo_bairro.setPlaceholderText("Bairro")
+
+        self.campo_cidade = QLineEdit()
+        self.campo_cidade.setPlaceholderText("Cidade")
+
+        self.campo_estado = QLineEdit()
+        self.campo_estado.setPlaceholderText("Estado")
+
+        # Primeira linha
+        linha_endereco_1 = QHBoxLayout()
+
+        linha_endereco_1.addWidget(self.campo_cep)
+
+        linha_endereco_1.addWidget(
+            self.campo_logradouro,
+            2,
         )
 
-        linha_dados.addWidget(
-            self.campo_telefone,
+        linha_endereco_1.addWidget(self.campo_numero)
+
+        layout_endereco.addLayout(linha_endereco_1)
+
+        # Segunda linha
+        linha_endereco_2 = QHBoxLayout()
+
+        linha_endereco_2.addWidget(self.campo_complemento)
+
+        linha_endereco_2.addWidget(self.campo_bairro)
+
+        linha_endereco_2.addWidget(
+            self.campo_cidade,
+            2,
         )
 
-        layout_cadastro.addLayout(
-            linha_dados,
+        layout_endereco.addLayout(linha_endereco_2)
+
+        # Terceira linha
+        linha_endereco_3 = QHBoxLayout()
+
+        linha_endereco_3.addWidget(self.campo_estado)
+
+        linha_endereco_3.addStretch()
+
+        layout_endereco.addLayout(linha_endereco_3)
+
+        card_endereco.setLayout(layout_endereco)
+
+        grade_cards.addWidget(
+            card_endereco,
+            0,
+            2,
         )
+
+        layout_cadastro.addLayout(grade_cards)
 
         # =========================
         # HABILITAÇÃO
+
         # =========================
+
+        card_habilitacao = QGroupBox("Habilitação")
+        layout_habilitacao = QVBoxLayout()
 
         self.campo_categoria_cnh = QComboBox()
 
@@ -118,6 +205,8 @@ class Motoristas(QWidget):
 
         linha_habilitacao = QHBoxLayout()
 
+        linha_habilitacao = QHBoxLayout()
+
         linha_habilitacao.addWidget(QLabel("Categoria CNH"))
 
         linha_habilitacao.addWidget(self.campo_categoria_cnh)
@@ -126,7 +215,7 @@ class Motoristas(QWidget):
 
         linha_habilitacao.addWidget(self.campo_validade_cnh)
 
-        layout_cadastro.addLayout(linha_habilitacao)
+        layout_habilitacao.addLayout(linha_habilitacao)
 
         linha_documento = QHBoxLayout()
 
@@ -139,7 +228,15 @@ class Motoristas(QWidget):
 
         linha_documento.addWidget(botao_cnh)
 
-        layout_cadastro.addLayout(linha_documento)
+        layout_habilitacao.addLayout(linha_documento)
+
+        card_habilitacao.setLayout(layout_habilitacao)
+
+        grade_cards.addWidget(
+            card_habilitacao,
+            0,
+            1,
+        )
 
         linha_botao = QHBoxLayout()
 
