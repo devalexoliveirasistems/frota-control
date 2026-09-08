@@ -56,6 +56,14 @@ class Motorista(Base):
         nullable=True,
     )
 
+    cep: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    logradouro: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    numero: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    complemento: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    bairro: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    cidade: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    estado: Mapped[str | None] = mapped_column(String(2), nullable=True)
+
     categoria_cnh: Mapped[str | None] = mapped_column(
         String(5),
         nullable=True,
