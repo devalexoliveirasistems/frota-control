@@ -18,7 +18,7 @@ from PySide6.QtCore import QDate, Qt
 from PySide6.QtGui import QKeyEvent
 
 from banco.sessao import SessionLocal
-from banco.modelos import Frete, Veiculo
+from banco.modelos import Frete, Veiculo, Motorista
 from telas.edicao_frete import EdicaoFrete
 
 
@@ -76,10 +76,11 @@ class Fretes(QWidget):
 
         caixa_lancamento = QGroupBox("Lançamento do Frete")
         layout_lancamento = QVBoxLayout()
-        layout_lancamento.setSpacing(10)
+        layout_lancamento.setSpacing(15)
 
-        # Linha 1
-        linha_1 = QHBoxLayout()
+        # ==================================
+        # CAMPOS DO FRETE
+        # ==================================
 
         self.campo_dia = QDateEdit()
         self.campo_dia.setCalendarPopup(True)
@@ -90,20 +91,6 @@ class Fretes(QWidget):
 
         self.campo_transportadora = QLineEdit()
         self.campo_transportadora.setPlaceholderText("Transportadora")
-
-        linha_1.addWidget(QLabel("Dia"))
-        linha_1.addWidget(self.campo_dia)
-
-        linha_1.addWidget(QLabel("OS"))
-        linha_1.addWidget(self.campo_os)
-
-        linha_1.addWidget(QLabel("Transportadora"))
-        linha_1.addWidget(self.campo_transportadora, 2)
-
-        layout_lancamento.addLayout(linha_1)
-
-        # Linha 2
-        linha_2 = QHBoxLayout()
 
         self.campo_embarque = QLineEdit()
         self.campo_embarque.setPlaceholderText("Local de embarque")
@@ -117,21 +104,15 @@ class Fretes(QWidget):
             None,
         )
 
+        self.campo_motorista = QComboBox()
+        self.campo_motorista.addItem(
+            "Selecione o motorista",
+            None,
+        )
+
+        self.carregar_motoristas()
+
         self.carregar_placas()
-
-        linha_2.addWidget(QLabel("Embarque"))
-        linha_2.addWidget(self.campo_embarque, 2)
-
-        linha_2.addWidget(QLabel("Destino"))
-        linha_2.addWidget(self.campo_destino, 2)
-
-        linha_2.addWidget(QLabel("Placa"))
-        linha_2.addWidget(self.campo_placa)
-
-        layout_lancamento.addLayout(linha_2)
-
-        # Linha 3
-        linha_3 = QHBoxLayout()
 
         self.campo_frete = QLineEdit()
         self.campo_frete.setPlaceholderText("Valor total do frete")
@@ -184,27 +165,96 @@ class Fretes(QWidget):
             ]
         )
 
-        # Deixa o fluxo mais natural para lançamento inicial.
         self.campo_status.setCurrentText("Aguardando saldo")
 
-        linha_3.addWidget(QLabel("Frete"))
-        linha_3.addWidget(self.campo_frete)
 
-        linha_3.addWidget(QLabel("Pedágio"))
-        linha_3.addWidget(self.campo_pedagio)
+        # ==================================
+        # CARD 1 — DADOS DA VIAGEM
+        # ==================================
 
-        linha_3.addWidget(QLabel("Adiantamento"))
-        linha_3.addWidget(self.campo_adiantamento)
+        card_dados = QGroupBox("Dados da viagem")
+        layout_dados = QVBoxLayout()
+        layout_dados.setSpacing(8)
 
-        linha_3.addWidget(QLabel("Saldo"))
-        linha_3.addWidget(self.campo_saldo)
+        layout_dados.addWidget(QLabel("Nº Contrato"))
+        layout_dados.addWidget(self.campo_os)
 
-        linha_3.addWidget(QLabel("Status"))
-        linha_3.addWidget(self.campo_status, 2)
+        layout_dados.addWidget(QLabel("Data"))
+        layout_dados.addWidget(self.campo_dia)
 
-        layout_lancamento.addLayout(linha_3)
+        layout_dados.addWidget(QLabel("Placa"))
+        layout_dados.addWidget(self.campo_placa)
 
-        # Botão
+        layout_dados.addWidget(QLabel("Motorista"))
+        layout_dados.addWidget(self.campo_motorista)
+
+        card_dados.setLayout(layout_dados)
+
+
+        # ==================================
+        # CARD 2 — CARGA
+        # ==================================
+
+        card_carga = QGroupBox("Carga")
+        layout_carga = QVBoxLayout()
+        layout_carga.setSpacing(8)
+
+        layout_carga.addWidget(QLabel("Embarque"))
+        layout_carga.addWidget(self.campo_embarque)
+
+        layout_carga.addWidget(QLabel("Destino"))
+        layout_carga.addWidget(self.campo_destino)
+
+        layout_carga.addWidget(QLabel("Transportadora"))
+        layout_carga.addWidget(self.campo_transportadora)
+
+        card_carga.setLayout(layout_carga)
+
+
+        # ==================================
+        # CARD 3 — VALORES
+        # ==================================
+
+        card_valores = QGroupBox("Valores")
+        layout_valores = QVBoxLayout()
+        layout_valores.setSpacing(8)
+
+        layout_valores.addWidget(QLabel("Frete"))
+        layout_valores.addWidget(self.campo_frete)
+
+        layout_valores.addWidget(QLabel("Pedágio"))
+        layout_valores.addWidget(self.campo_pedagio)
+
+        layout_valores.addWidget(QLabel("Adiantamento"))
+        layout_valores.addWidget(self.campo_adiantamento)
+
+        layout_valores.addWidget(QLabel("Saldo"))
+        layout_valores.addWidget(self.campo_saldo)
+
+        layout_valores.addWidget(QLabel("Status"))
+        layout_valores.addWidget(self.campo_status)
+
+        card_valores.setLayout(layout_valores)
+
+
+        # ==================================
+        # 3 CARDS DENTRO DO CARD MAIOR
+        # ==================================
+
+        linha_cards = QHBoxLayout()
+        linha_cards.setSpacing(12)
+
+        linha_cards.addWidget(card_dados, 1)
+        linha_cards.addWidget(card_carga, 1)
+        linha_cards.addWidget(card_valores, 1)
+
+        layout_lancamento.addLayout(linha_cards)
+
+
+        # ==================================
+        # BOTÕES
+        # ==================================
+
         linha_botao = QHBoxLayout()
         linha_botao.addStretch()
 
@@ -225,6 +275,7 @@ class Fretes(QWidget):
         layout_principal.addSpacing(10)
         layout_principal.addWidget(caixa_lancamento)
 
+
         # ==================================
         # CAIXA DE FRETES LANÇADOS
         # ==================================
@@ -235,7 +286,7 @@ class Fretes(QWidget):
         self.tabela_fretes = TabelaFretes()
         self.tabela_fretes.setEditTriggers(QTableWidget.NoEditTriggers)
 
-        self.tabela_fretes.setColumnCount(11)
+        self.tabela_fretes.setColumnCount(12)
 
         self.tabela_fretes.setHorizontalHeaderLabels(
             [
@@ -245,6 +296,7 @@ class Fretes(QWidget):
                 "Embarque",
                 "Destino",
                 "Placa",
+                "Motorista",
                 "Frete",
                 "Pedágio",
                 "Adiantamento",
@@ -366,6 +418,31 @@ class Fretes(QWidget):
         finally:
             sessao.close()
 
+
+    # ======================================
+    # MOTORISTAS
+    # ======================================
+
+    def carregar_motoristas(self):
+        sessao = SessionLocal()
+
+        try:
+            motoristas = (
+                sessao.query(Motorista)
+                .filter(Motorista.status == "Ativo")
+                .order_by(Motorista.nome.asc())
+                .all()
+            )
+
+            for motorista in motoristas:
+                self.campo_motorista.addItem(
+                    motorista.nome,
+                    motorista.id,
+                )
+
+        finally:
+            sessao.close()
+
     # ======================================
     # CONVERTER VALOR
     # ======================================
@@ -426,6 +503,8 @@ class Fretes(QWidget):
 
             veiculo_id = self.campo_placa.currentData()
 
+            motorista_id = self.campo_motorista.currentData()
+
             valor_frete = self.converter_valor(self.campo_frete.text())
 
             pedagio = self.converter_valor(self.campo_pedagio.text())
@@ -479,6 +558,14 @@ class Fretes(QWidget):
                 )
                 return
 
+            if motorista_id is None:
+                QMessageBox.warning(
+                    self,
+                    "Campo obrigatório",
+                    "Selecione o motorista.",
+                )
+                return
+
             if valor_frete <= 0:
                 QMessageBox.warning(
                     self,
@@ -497,6 +584,7 @@ class Fretes(QWidget):
                     embarque=embarque,
                     destino=destino,
                     veiculo_id=veiculo_id,
+                    motorista_id=motorista_id,
                     valor_frete=valor_frete,
                     pedagio=pedagio,
                     adiantamento=adiantamento,
@@ -548,10 +636,14 @@ class Fretes(QWidget):
 
         try:
             fretes = (
-                sessao.query(Frete, Veiculo.placa)
+                sessao.query(Frete, Veiculo.placa, Motorista.nome)
                 .join(
                     Veiculo,
                     Frete.veiculo_id == Veiculo.id,
+                )
+                .join(
+                    Motorista,
+                    Frete.motorista_id == Motorista.id,
                 )
                 .order_by(Frete.id.asc())
                 .all()
@@ -560,7 +652,7 @@ class Fretes(QWidget):
             self.tabela_fretes.setRowCount(len(fretes))
 
             for linha, resultado in enumerate(fretes):
-                frete, placa = resultado
+                frete, placa, motorista = resultado
 
                 dados = [
                     frete.dia.strftime("%d/%m/%Y"),
@@ -569,6 +661,7 @@ class Fretes(QWidget):
                     frete.embarque,
                     frete.destino,
                     placa,
+                    motorista,
                     self.formatar_moeda(frete.valor_frete),
                     self.formatar_moeda(frete.pedagio),
                     self.formatar_moeda(frete.adiantamento),
@@ -661,6 +754,7 @@ class Fretes(QWidget):
         self.campo_destino.clear()
 
         self.campo_placa.setCurrentIndex(0)
+        self.campo_motorista.setCurrentIndex(0)
 
         self.campo_frete.clear()
         self.campo_pedagio.clear()

@@ -81,6 +81,32 @@ class Motorista(Base):
     )
 
 
+class DocumentoMotorista(Base):
+    __tablename__ = "documentos_motoristas"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    motorista_id: Mapped[int] = mapped_column(
+        ForeignKey("motoristas.id"),
+        nullable=False,
+    )
+    tipo_documento: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+    )
+    nome_arquivo: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    caminho_arquivo: Mapped[str] = mapped_column(
+        String(500),
+        nullable=False,
+    )
+    validade: Mapped[date | None] = mapped_column(
+        Date,
+        nullable=True,
+    )
+
+
 class Frete(Base):
     __tablename__ = "fretes"
 
@@ -116,6 +142,11 @@ class Frete(Base):
 
     veiculo_id: Mapped[int] = mapped_column(
         ForeignKey("veiculos.id"),
+        nullable=False,
+    )
+
+    motorista_id: Mapped[int] = mapped_column(
+        ForeignKey("motoristas.id"),
         nullable=False,
     )
 

@@ -19,8 +19,10 @@ from PySide6.QtWidgets import (
 )
 
 from banco.sessao import SessionLocal
-from banco.modelos import Motorista
+from banco.modelos import Motorista, DocumentoMotorista
 from PySide6.QtCore import QDate
+import os
+import shutil
 
 
 class Motoristas(QWidget):
@@ -375,6 +377,33 @@ class Motoristas(QWidget):
             )
 
             sessao.add(motorista)
+            sessao.flush()
+
+            if getattr(self, "caminho_cnh", None):
+                pasta_documentos = os.path.join(
+                    os.path.dirname(os.path.dirname(__file__)),
+                    "documentos",
+                    "motoristas",
+                    str(motorista.id),
+                )
+
+                os.makedirs(pasta_documentos, exist_ok=True)
+
+                nome_arquivo = os.path.basename(self.caminho_cnh)
+                destino_cnh = os.path.join(pasta_documentos, nome_arquivo)
+
+                shutil.copy2(self.caminho_cnh, destino_cnh)
+
+                documento = DocumentoMotorista(
+                    motorista_id=motorista.id,
+                    tipo_documento="CNH",
+                    nome_arquivo=nome_arquivo,
+                    caminho_arquivo=destino_cnh,
+                    validade=motorista.validade_cnh,
+                )
+
+                sessao.add(documento)
+
             sessao.commit()
 
             self.carregar_motoristas()
@@ -500,17 +529,79 @@ class Motoristas(QWidget):
                 else "Não informada"
             )
 
-            layout_habilitacao.addRow("Categoria:", QLabel(categoria))
+            layout_habilitacao.addRow(
+                "Categoria:",
+                QLabel(categoria),
+            )
 
-            layout_habilitacao.addRow("Validade:", QLabel(validade))
+            layout_habilitacao.addRow(
+                "Validade:",
+                QLabel(validade),
+            )
+
+            nome_cnh = (
+                sessao.query(DocumentoMotorista.nome_arquivo)
+                .filter(
+                    DocumentoMotorista.motorista_id == motorista.id,
+                    DocumentoMotorista.tipo_documento == "CNH",
+                )
+                .scalar()
+            )
+
+            if not nome_cnh:
+                nome_cnh = "Não anexada"
+
+            botao_abrir_cnh = QPushButton("Abrir CNH")
+
+
+
+            botao_abrir_cnh = QPushButton("Abrir CNH")
+
+            documento_cnh = (
+                sessao.query(DocumentoMotorista)
+                .filter(
+                    DocumentoMotorista.motorista_id == motorista.id,
+                    DocumentoMotorista.tipo_documento == "CNH",
+                )
+                .first()
+            )
+
+            nome_cnh = (
+                documento_cnh.nome_arquivo
+                if documento_cnh
+                else "Não anexada"
+            )
+
+            def abrir_cnh():
+                if not documento_cnh:
+                    QMessageBox.warning(
+                        dialogo,
+                        "CNH não encontrada",
+                        "Não existe uma CNH cadastrada para este motorista.",
+                    )
+                    return
+
+                caminho = documento_cnh.caminho_arquivo
+
+                if not os.path.isfile(caminho):
+                    QMessageBox.warning(
+                        dialogo,
+                        "Arquivo não encontrado",
+                        "O arquivo da CNH não foi encontrado no computador.",
+                    )
+                    return
+
+                os.startfile(caminho)
+
+            botao_abrir_cnh.clicked.connect(abrir_cnh)
+
+            linha_cnh = QHBoxLayout()
+            linha_cnh.addWidget(QLabel(nome_cnh))
+            linha_cnh.addWidget(botao_abrir_cnh)
 
             layout_habilitacao.addRow(
                 "CNH:",
-                QLabel(
-                    "Documento anexado"
-                    if getattr(self, "caminho_cnh", None)
-                    else "Não anexada"
-                ),
+                linha_cnh,
             )
 
             card_habilitacao.setLayout(layout_habilitacao)
@@ -690,6 +781,28 @@ class Motoristas(QWidget):
             campo_validade = QDateEdit()
             campo_validade.setCalendarPopup(True)
 
+            campo_arquivo_cnh = QLineEdit()
+            campo_arquivo_cnh.setPlaceholderText("Arquivo da CNH")
+            campo_arquivo_cnh.setReadOnly(True)
+
+            botao_cnh = QPushButton("Adicionar arquivo")
+
+            documento_existente = (
+                sessao.query(DocumentoMotorista)
+                .filter(
+                    DocumentoMotorista.motorista_id == motorista.id,
+                    DocumentoMotorista.tipo_documento == "CNH",
+                )
+                .first()
+            )
+
+            if documento_existente:
+                campo_arquivo_cnh.setText(documento_existente.nome_arquivo)
+                campo_arquivo_cnh.setProperty(
+                    "caminho_arquivo",
+                    documento_existente.caminho_arquivo,
+                )
+
             if motorista.validade_cnh:
                 campo_validade.setDate(
                     QDate(
@@ -701,8 +814,31 @@ class Motoristas(QWidget):
             else:
                 campo_validade.setDate(QDate.currentDate())
 
+            def selecionar_cnh():
+                arquivo, _ = QFileDialog.getOpenFileName(
+                    dialogo,
+                    "Selecionar CNH",
+                    "",
+                    "Arquivos PDF e imagens (*.pdf *.jpg *.jpeg *.png)",
+                )
+
+                campo_arquivo_cnh.setText(os.path.basename(arquivo))
+
+                campo_arquivo_cnh.setProperty(
+                    "caminho_arquivo",
+                    arquivo,
+                )
+
+            botao_cnh.clicked.connect(selecionar_cnh)
+
             layout_habilitacao.addRow("Categoria:", campo_categoria)
             layout_habilitacao.addRow("Validade:", campo_validade)
+
+            linha_cnh = QHBoxLayout()
+            linha_cnh.addWidget(campo_arquivo_cnh)
+            linha_cnh.addWidget(botao_cnh)
+
+            layout_habilitacao.addRow("CNH:", linha_cnh)
 
             card_habilitacao.setLayout(layout_habilitacao)
 
@@ -782,29 +918,95 @@ class Motoristas(QWidget):
                     )
                     return
 
-                motorista.nome = nome
-                motorista.cpf = cpf
-                motorista.telefone = campo_telefone.text().strip() or None
-                motorista.status = campo_status.currentText()
-
-                motorista.categoria_cnh = (
-                    None
-                    if campo_categoria.currentText() == "Selecione"
-                    else campo_categoria.currentText()
-                )
-
-                motorista.validade_cnh = campo_validade.date().toPython()
-
-                motorista.cep = campo_cep.text().strip() or None
-                motorista.logradouro = campo_logradouro.text().strip() or None
-                motorista.numero = campo_numero.text().strip() or None
-                motorista.complemento = campo_complemento.text().strip() or None
-                motorista.bairro = campo_bairro.text().strip() or None
-                motorista.cidade = campo_cidade.text().strip() or None
-                motorista.estado = campo_estado.text().strip() or None
-
                 try:
+                    # =========================
+                    # DADOS DO MOTORISTA
+                    # =========================
+
+                    motorista.nome = nome
+                    motorista.cpf = cpf
+                    motorista.telefone = campo_telefone.text().strip() or None
+                    motorista.status = campo_status.currentText()
+
+                    motorista.categoria_cnh = (
+                        None
+                        if campo_categoria.currentText() == "Selecione"
+                        else campo_categoria.currentText()
+                    )
+
+                    motorista.validade_cnh = campo_validade.date().toPython()
+
+                    motorista.cep = campo_cep.text().strip() or None
+                    motorista.logradouro = campo_logradouro.text().strip() or None
+                    motorista.numero = campo_numero.text().strip() or None
+                    motorista.complemento = campo_complemento.text().strip() or None
+                    motorista.bairro = campo_bairro.text().strip() or None
+                    motorista.cidade = campo_cidade.text().strip() or None
+                    motorista.estado = campo_estado.text().strip() or None
+
+                    # =========================
+                    # CNH
+                    # =========================
+
+                    caminho_cnh = campo_arquivo_cnh.property("caminho_arquivo")
+
+                    if caminho_cnh and os.path.isfile(caminho_cnh):
+
+                        pasta_documentos = os.path.join(
+                            os.path.dirname(os.path.dirname(__file__)),
+                            "documentos",
+                            "motoristas",
+                            str(motorista.id),
+                        )
+
+                        os.makedirs(
+                            pasta_documentos,
+                            exist_ok=True,
+                        )
+
+                        nome_arquivo = os.path.basename(caminho_cnh)
+
+                        destino_cnh = os.path.join(
+                            pasta_documentos,
+                            nome_arquivo,
+                        )
+
+                        shutil.copy2(
+                            caminho_cnh,
+                            destino_cnh,
+                        )
+
+                        documento_cnh = (
+                            sessao.query(DocumentoMotorista)
+                            .filter(
+                                DocumentoMotorista.motorista_id == motorista.id,
+                                DocumentoMotorista.tipo_documento == "CNH",
+                            )
+                            .first()
+                        )
+
+                        if documento_cnh:
+                            documento_cnh.nome_arquivo = nome_arquivo
+                            documento_cnh.caminho_arquivo = destino_cnh
+                            documento_cnh.validade = motorista.validade_cnh
+
+                        else:
+                            documento_cnh = DocumentoMotorista(
+                                motorista_id=motorista.id,
+                                tipo_documento="CNH",
+                                nome_arquivo=nome_arquivo,
+                                caminho_arquivo=destino_cnh,
+                                validade=motorista.validade_cnh,
+                            )
+
+                            sessao.add(documento_cnh)
+
+                    # =========================
+                    # SALVAR
+                    # =========================
+
                     sessao.commit()
+
                     self.carregar_motoristas()
                     dialogo.accept()
 
