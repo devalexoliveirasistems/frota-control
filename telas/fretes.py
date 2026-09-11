@@ -410,6 +410,32 @@ class Fretes(QWidget):
         caixa_comissoes = QGroupBox("Comissões dos Motoristas")
         layout_comissoes = QVBoxLayout()
 
+        linha_filtro_comissao = QHBoxLayout()
+
+        linha_filtro_comissao.addWidget(QLabel("Motorista:"))
+
+        self.filtro_comissao_motorista = QComboBox()
+        self.filtro_comissao_motorista.addItem("Todos", None)
+        sessao = SessionLocal()
+
+        try:
+            motoristas = (
+                sessao.query(Motorista)
+                .filter(Motorista.status == "Ativo")
+                .order_by(Motorista.nome.asc())
+                .all()
+            )
+
+            for motorista in motoristas:
+                self.filtro_comissao_motorista.addItem(motorista.nome, motorista.id)
+
+        finally:
+            sessao.close()
+
+        linha_filtro_comissao.addWidget(self.filtro_comissao_motorista, 1)
+
+        layout_comissoes.addLayout(linha_filtro_comissao)
+
         self.tabela_comissoes = QTableWidget()
 
         self.tabela_comissoes.setColumnCount(6)
@@ -853,6 +879,32 @@ class Fretes(QWidget):
             )
 
             self.tabela_fretes.setRowHidden(linha, not mostrar)
+
+    def carregar_comissoes(self):
+        sessao = SessionLocal()
+
+        try:
+            fretes = (
+                sessao.query(Frete, Veiculo.placa, Motorista.nome)
+                .join(Veiculo, Frete.veiculo_id == Veiculo.id)
+                .join(Motorista, Frete.motorista_id == Motorista.id)
+                .order_by(Frete.id.asc())
+                .all()
+            )
+
+            self.tabela_comissoes.setRowCount(len(fretes))
+
+            for linha, resultado in enumerate(fretes):
+                frete, placa, motorista = resultado
+                dados = [
+                    frete.dia.strftime("%d/%m/%Y"),
+                    frete.ordem_servico,
+                    motorista,
+                    placa,
+                ]
+
+        finally:
+            sessao.close()
 
     def editar_frete(self):
         linha = self.tabela_fretes.currentRow()
