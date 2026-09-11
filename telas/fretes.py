@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QHeaderView,
     QMessageBox,
+    QTabWidget,
 )
 
 from PySide6.QtCore import QDate, Qt
@@ -59,8 +60,8 @@ class Fretes(QWidget):
         super().__init__()
 
         layout_principal = QVBoxLayout()
-        layout_principal.setContentsMargins(20, 20, 20, 20)
-        layout_principal.setSpacing(15)
+        layout_principal.setContentsMargins(10, 5, 10, 5)
+        layout_principal.setSpacing(10)
 
         titulo = QLabel("Fretes")
         titulo.setStyleSheet("""
@@ -167,7 +168,6 @@ class Fretes(QWidget):
 
         self.campo_status.setCurrentText("Aguardando saldo")
 
-
         # ==================================
         # CARD 1 — DADOS DA VIAGEM
         # ==================================
@@ -190,7 +190,6 @@ class Fretes(QWidget):
 
         card_dados.setLayout(layout_dados)
 
-
         # ==================================
         # CARD 2 — CARGA
         # ==================================
@@ -209,7 +208,6 @@ class Fretes(QWidget):
         layout_carga.addWidget(self.campo_transportadora)
 
         card_carga.setLayout(layout_carga)
-
 
         # ==================================
         # CARD 3 — VALORES
@@ -236,7 +234,6 @@ class Fretes(QWidget):
 
         card_valores.setLayout(layout_valores)
 
-
         # ==================================
         # 3 CARDS DENTRO DO CARD MAIOR
         # ==================================
@@ -249,7 +246,6 @@ class Fretes(QWidget):
         linha_cards.addWidget(card_valores, 1)
 
         layout_lancamento.addLayout(linha_cards)
-
 
         # ==================================
         # BOTÕES
@@ -266,27 +262,91 @@ class Fretes(QWidget):
         botao_editar = QPushButton("Editar frete")
         botao_editar.setMinimumWidth(140)
 
-        linha_botao.addWidget(botao_editar)
-
         layout_lancamento.addLayout(linha_botao)
 
         caixa_lancamento.setLayout(layout_lancamento)
 
-        layout_principal.addSpacing(10)
-        layout_principal.addWidget(caixa_lancamento)
+        # ==================================
+        # ABAS PRINCIPAIS
+        # ==================================
 
+        abas_principais = QTabWidget()
 
         # ==================================
-        # CAIXA DE FRETES LANÇADOS
+        # ABA — LANÇAR FRETE
         # ==================================
+
+        aba_lancamento = QWidget()
+        layout_aba_lancamento = QVBoxLayout(aba_lancamento)
+        layout_aba_lancamento.setContentsMargins(5, 5, 5, 5)
+        layout_aba_lancamento.addWidget(caixa_lancamento)
+
+        abas_principais.addTab(aba_lancamento, "Lançar Frete")
+
+        # ==================================
+        # ABA — GESTÃO DE FRETES
+        # ==================================
+
+        aba_gestao = QWidget()
+        layout_aba_gestao = QVBoxLayout(aba_gestao)
+        layout_aba_gestao.setContentsMargins(5, 5, 5, 5)
+
+        abas = QTabWidget()
+
+        # ==================================
+        # ABA — FRETES LANÇADOS
+        # ==================================
+
+        aba_fretes = QWidget()
+        layout_aba_fretes = QVBoxLayout(aba_fretes)
+
+        layout_aba_fretes.setContentsMargins(0, 0, 0, 0)
 
         caixa_fretes = QGroupBox("Fretes Lançados")
         layout_fretes = QVBoxLayout()
 
+        # ==================================
+        # FILTROS — MOTORISTA E PLACA
+        # ==================================
+
+        linha_filtros = QHBoxLayout()
+
+        linha_filtros.addWidget(QLabel("Motorista:"))
+
+        self.filtro_motorista = QComboBox()
+        self.filtro_motorista.addItem("Todos", None)
+        self.filtro_motorista.currentIndexChanged.connect(self.aplicar_filtros_fretes)
+        linha_filtros.addWidget(self.filtro_motorista, 1)
+
+        linha_filtros.addWidget(QLabel("Placa:"))
+
+        self.filtro_placa = QComboBox()
+        self.filtro_placa.addItem("Todas", None)
+        self.filtro_placa.currentIndexChanged.connect(self.aplicar_filtros_fretes)
+        linha_filtros.addWidget(self.filtro_placa, 1)
+
+        layout_fretes.addLayout(linha_filtros)
+        layout_fretes.addWidget(botao_editar)
+        sessao = SessionLocal()
+
+        try:
+            veiculos = (
+                sessao.query(Veiculo)
+                .filter(Veiculo.status == "Ativo")
+                .order_by(Veiculo.placa.asc())
+                .all()
+            )
+
+            for veiculo in veiculos:
+                self.filtro_placa.addItem(veiculo.placa, veiculo.id)
+
+        finally:
+            sessao.close()
+
         self.tabela_fretes = TabelaFretes()
         self.tabela_fretes.setEditTriggers(QTableWidget.NoEditTriggers)
 
-        self.tabela_fretes.setColumnCount(12)
+        self.tabela_fretes.setColumnCount(13)
 
         self.tabela_fretes.setHorizontalHeaderLabels(
             [
@@ -327,23 +387,27 @@ class Fretes(QWidget):
         self.tabela_fretes.setColumnWidth(7, 120)
         self.tabela_fretes.setColumnWidth(8, 150)
         self.tabela_fretes.setColumnWidth(9, 130)
-        self.tabela_fretes.setColumnWidth(10, 190)
+        self.tabela_fretes.setColumnWidth(10, 130)
+        self.tabela_fretes.setColumnWidth(11, 190)
 
         layout_fretes.addWidget(self.tabela_fretes)
 
         caixa_fretes.setLayout(layout_fretes)
 
-        layout_principal.addWidget(
-            caixa_fretes,
-            1,
-        )
+        layout_aba_fretes.addWidget(caixa_fretes)
+
+        abas.addTab(aba_fretes, "Fretes Lançados")
 
         # ==================================
-        # CAIXA DE COMISSÕES
+        # ABA — COMISSÕES
         # ==================================
+
+        aba_comissoes = QWidget()
+        layout_aba_comissoes = QVBoxLayout(aba_comissoes)
+
+        layout_aba_comissoes.setContentsMargins(0, 0, 0, 0)
 
         caixa_comissoes = QGroupBox("Comissões dos Motoristas")
-
         layout_comissoes = QVBoxLayout()
 
         self.tabela_comissoes = QTableWidget()
@@ -373,11 +437,37 @@ class Fretes(QWidget):
 
         caixa_comissoes.setLayout(layout_comissoes)
 
-        layout_principal.addWidget(
-            caixa_comissoes,
-            1,
-        )
+        layout_aba_comissoes.addWidget(caixa_comissoes)
 
+        abas.addTab(aba_comissoes, "Comissões")
+
+        # ==================================
+        # ABA — RESUMO
+        # ==================================
+
+        aba_resumo = QWidget()
+        layout_aba_resumo = QVBoxLayout(aba_resumo)
+
+        layout_aba_resumo.setContentsMargins(0, 0, 0, 0)
+
+        caixa_resumo = QGroupBox("Resumo dos Fretes")
+        layout_resumo = QVBoxLayout()
+
+        label_resumo = QLabel("Resumo dos fretes")
+
+        layout_resumo.addWidget(label_resumo)
+        layout_resumo.addStretch()
+
+        caixa_resumo.setLayout(layout_resumo)
+
+        layout_aba_resumo.addWidget(caixa_resumo)
+
+        abas.addTab(aba_resumo, "Resumo")
+
+        layout_aba_gestao.addWidget(abas)
+
+        abas_principais.addTab(aba_gestao, "Gestão de Fretes")
+        layout_principal.addWidget(abas_principais, 1)
         self.setLayout(layout_principal)
 
         # ==================================
@@ -417,7 +507,6 @@ class Fretes(QWidget):
 
         finally:
             sessao.close()
-
 
     # ======================================
     # MOTORISTAS
@@ -594,6 +683,8 @@ class Fretes(QWidget):
 
                 sessao.add(frete)
                 sessao.commit()
+                sessao.refresh(frete)
+                sessao.expunge(frete)
 
             except Exception:
                 sessao.rollback()
@@ -604,14 +695,6 @@ class Fretes(QWidget):
 
             self.carregar_fretes()
             self.limpar_lancamento()
-
-            janela = EdicaoFrete(
-                frete=frete,
-                parent=self,
-            )
-
-            if janela.exec():
-                self.carregar_fretes()
 
         except ValueError:
             QMessageBox.warning(
@@ -651,6 +734,63 @@ class Fretes(QWidget):
 
             self.tabela_fretes.setRowCount(len(fretes))
 
+            # Guarda a seleção atual antes de reconstruir os filtros.
+            motorista_atual = self.filtro_motorista.currentData()
+            placa_atual = self.filtro_placa.currentData()
+
+            self.filtro_motorista.blockSignals(True)
+            self.filtro_placa.blockSignals(True)
+
+            self.filtro_motorista.clear()
+            self.filtro_motorista.addItem("Todos", None)
+
+            self.filtro_placa.clear()
+            self.filtro_placa.addItem("Todas", None)
+            veiculos = (
+                SessionLocal()
+                .query(Veiculo)
+                .filter(Veiculo.status == "Ativo")
+                .order_by(Veiculo.placa.asc())
+                .all()
+            )
+
+            for veiculo in veiculos:
+                self.filtro_placa.addItem(veiculo.placa, veiculo.id)
+
+            # Puxa diretamente do cadastro de motoristas e veículos ativos.
+            motoristas = (
+                sessao.query(Motorista)
+                .filter(Motorista.status == "Ativo")
+                .order_by(Motorista.nome.asc())
+                .all()
+            )
+
+            placas = (
+                sessao.query(Veiculo)
+                .filter(Veiculo.status == "Ativo")
+                .order_by(Veiculo.placa.asc())
+                .all()
+            )
+
+            for motorista in motoristas:
+                self.filtro_motorista.addItem(motorista.nome, motorista.id)
+
+            for veiculo in placas:
+                self.filtro_placa.addItem(veiculo.placa, veiculo.id)
+
+            if motorista_atual is not None:
+                indice = self.filtro_motorista.findData(motorista_atual)
+                if indice >= 0:
+                    self.filtro_motorista.setCurrentIndex(indice)
+
+            if placa_atual is not None:
+                indice = self.filtro_placa.findData(placa_atual)
+                if indice >= 0:
+                    self.filtro_placa.setCurrentIndex(indice)
+
+            self.filtro_motorista.blockSignals(False)
+            self.filtro_placa.blockSignals(False)
+
             for linha, resultado in enumerate(fretes):
                 frete, placa, motorista = resultado
 
@@ -684,8 +824,35 @@ class Fretes(QWidget):
                         item,
                     )
 
+                self.tabela_fretes.item(5 and linha, 5).setData(
+                    Qt.UserRole + 1, frete.veiculo_id
+                )
+                self.tabela_fretes.item(linha, 6).setData(
+                    Qt.UserRole + 1, frete.motorista_id
+                )
+
         finally:
             sessao.close()
+
+    def aplicar_filtros_fretes(self):
+        motorista_id = self.filtro_motorista.currentData()
+        veiculo_id = self.filtro_placa.currentData()
+
+        for linha in range(self.tabela_fretes.rowCount()):
+            item_placa = self.tabela_fretes.item(linha, 5)
+            item_motorista = self.tabela_fretes.item(linha, 6)
+
+            if not item_placa or not item_motorista:
+                continue
+
+            linha_veiculo_id = item_placa.data(Qt.UserRole + 1)
+            linha_motorista_id = item_motorista.data(Qt.UserRole + 1)
+
+            mostrar = (motorista_id is None or linha_motorista_id == motorista_id) and (
+                veiculo_id is None or linha_veiculo_id == veiculo_id
+            )
+
+            self.tabela_fretes.setRowHidden(linha, not mostrar)
 
     def editar_frete(self):
         linha = self.tabela_fretes.currentRow()
