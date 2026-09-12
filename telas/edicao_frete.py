@@ -166,6 +166,20 @@ class EdicaoFrete(QDialog):
         layout_principal.addLayout(linha_6)
 
         # ==================================
+        # OBSERVAÇÃO
+        # ==================================
+        linha_observacao = QHBoxLayout()
+
+        self.campo_observacao = QLineEdit(
+            "" if frete.observacao is None else frete.observacao
+        )
+
+        linha_observacao.addWidget(QLabel("Observação"))
+        linha_observacao.addWidget(self.campo_observacao)
+
+        layout_principal.addLayout(linha_observacao)
+
+        # ==================================
         # STATUS
         # ==================================
 
@@ -295,6 +309,8 @@ class EdicaoFrete(QDialog):
                 self.frete.saldo = saldo
 
                 self.frete.status = self.campo_status.currentText()
+
+                self.frete.observacao = self.campo_observacao.text().strip()
 
                 sessao.merge(self.frete)
                 sessao.commit()

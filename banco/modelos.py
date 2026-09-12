@@ -75,9 +75,14 @@ class Motorista(Base):
     )
 
     status: Mapped[str] = mapped_column(
-        String(20),
+        String(50),
         nullable=False,
-        default="Ativo",
+        default="Pendente",
+    )
+
+    observacao: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
     )
 
 
@@ -176,6 +181,11 @@ class Frete(Base):
         String(50),
         nullable=False,
         default="Pendente",
+    )
+
+    observacao: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
     )
 
 

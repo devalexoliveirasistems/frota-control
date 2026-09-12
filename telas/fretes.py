@@ -21,6 +21,7 @@ from PySide6.QtGui import QKeyEvent
 from banco.sessao import SessionLocal
 from banco.modelos import Frete, Veiculo, Motorista
 from telas.edicao_frete import EdicaoFrete
+from decimal import Decimal
 
 
 class TabelaFretes(QTableWidget):
@@ -407,17 +408,64 @@ class Fretes(QWidget):
 
         layout_aba_comissoes.setContentsMargins(0, 0, 0, 0)
 
-        caixa_comissoes = QGroupBox("Comissões dos Motoristas")
+        caixa_comissoes = QGroupBox()
+
         layout_comissoes = QVBoxLayout()
+        layout_comissoes.setContentsMargins(20, 20, 20, 20)
+        layout_comissoes.setSpacing(12)
+
+        titulo_comissoes = QLabel("Comissões dos Motoristas")
+        titulo_comissoes.setStyleSheet("""
+            font-size: 20px;
+            font-weight: bold;
+        """)
+
+        descricao_comissoes = QLabel("Acompanhe as comissões geradas por cada viagem.")
+        descricao_comissoes.setStyleSheet("""
+            font-size: 13px;
+        """)
+
+        layout_comissoes.addWidget(titulo_comissoes)
+        layout_comissoes.addWidget(descricao_comissoes)
 
         linha_filtro_comissao = QHBoxLayout()
+        linha_filtro_comissao.setSpacing(10)
 
-        linha_filtro_comissao.addWidget(QLabel("Motorista:"))
+        label_filtro_motorista = QLabel("Motorista")
+        label_filtro_motorista.setStyleSheet("""
+            font-weight: bold;
+        """)
+
+        linha_filtro_comissao.addWidget(label_filtro_motorista)
 
         self.filtro_comissao_motorista = QComboBox()
-        self.filtro_comissao_motorista.addItem("Todos", None)
-        sessao = SessionLocal()
+        self.filtro_comissao_motorista.setMinimumHeight(36)
+        self.filtro_comissao_motorista.setMinimumWidth(260)
+        self.filtro_comissao_motorista.setStyleSheet("""
+            QComboBox {
+                border: 1px solid #d6dbe1;
+                border-radius: 8px;
+                padding: 6px 12px;
+                background-color: white;
+                font-size: 13px;
+            }
 
+            QComboBox:hover {
+                border: 1px solid #9aa4b2;
+            }
+
+            QComboBox:focus {
+                border: 1px solid #6b7280;
+            }
+
+            QComboBox::drop-down {
+                border: none;
+                width: 30px;
+            }
+        """)
+        self.filtro_comissao_motorista.addItem("Todos", None)
+
+        sessao = SessionLocal()
         try:
             motoristas = (
                 sessao.query(Motorista)
@@ -432,32 +480,82 @@ class Fretes(QWidget):
         finally:
             sessao.close()
 
+        self.filtro_comissao_motorista.currentIndexChanged.connect(
+            self.carregar_comissoes
+        )
+
         linha_filtro_comissao.addWidget(self.filtro_comissao_motorista, 1)
+        botao_limpar_comissao = QPushButton("Limpar")
+        botao_limpar_comissao.setMinimumHeight(36)
+        botao_limpar_comissao.setMinimumWidth(100)
+
+        linha_filtro_comissao.addWidget(botao_limpar_comissao)
 
         layout_comissoes.addLayout(linha_filtro_comissao)
+        botao_limpar_comissao.clicked.connect(
+            lambda: self.filtro_comissao_motorista.setCurrentIndex(0)
+        )
 
         self.tabela_comissoes = QTableWidget()
+        self.tabela_comissoes.setObjectName("tabelaComissoes")
+        self.tabela_comissoes.setEditTriggers(QTableWidget.NoEditTriggers)
 
-        self.tabela_comissoes.setColumnCount(6)
+        self.tabela_comissoes.setColumnCount(7)
 
         self.tabela_comissoes.setHorizontalHeaderLabels(
             [
                 "Dia",
-                "OS",
+                "N° Contrato",
                 "Motorista",
                 "Placa",
                 "Viagem",
                 "Comissão",
+                "Observação",
             ]
         )
 
         self.tabela_comissoes.setAlternatingRowColors(True)
-
+        self.tabela_comissoes.horizontalHeader().setMinimumHeight(40)
+        self.tabela_comissoes.verticalHeader().setDefaultSectionSize(36)
         self.tabela_comissoes.setSelectionBehavior(QTableWidget.SelectRows)
+        self.tabela_comissoes.setFocusPolicy(Qt.NoFocus)
+        self.tabela_comissoes.horizontalHeader().setStretchLastSection(True)
+        self.tabela_comissoes.setColumnWidth(0, 100)
+        self.tabela_comissoes.setColumnWidth(1, 130)
+        self.tabela_comissoes.setColumnWidth(2, 220)
+        self.tabela_comissoes.setColumnWidth(3, 110)
+        self.tabela_comissoes.setColumnWidth(4, 140)
+        self.tabela_comissoes.setColumnWidth(5, 130)
+        self.tabela_comissoes.setColumnWidth(6, 250)
+        self.tabela_comissoes.setStyleSheet("""
+            QTableWidget {
+                border: 1px solid #dfe3e8;
+                border-radius: 8px;
+                gridline-color: #e6e9ed;
+                background-color: white;
+                alternate-background-color: #f8fafc;
+                font-size: 13px;
+            }
 
-        self.tabela_comissoes.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeToContents
-        )
+            QTableWidget::item {
+                padding: 6px;
+            }
+
+            QTableWidget::item:selected {
+                background-color: #e8f0fe;
+                color: #1f2937;
+            }
+
+            QHeaderView::section {
+                background-color: #f1f5f9;
+                color: #374151;
+                font-weight: bold;
+                font-size: 12px;
+                padding: 10px;
+                border: none;
+                border-bottom: 1px solid #dfe3e8;
+            }
+        """)
 
         layout_comissoes.addWidget(self.tabela_comissoes)
 
@@ -509,6 +607,7 @@ class Fretes(QWidget):
         # ==================================
 
         self.carregar_fretes()
+        self.carregar_comissoes()
 
     # ======================================
     # PLACAS
@@ -881,6 +980,7 @@ class Fretes(QWidget):
             self.tabela_fretes.setRowHidden(linha, not mostrar)
 
     def carregar_comissoes(self):
+        motorista_id = self.filtro_comissao_motorista.currentData()
         sessao = SessionLocal()
 
         try:
@@ -888,20 +988,44 @@ class Fretes(QWidget):
                 sessao.query(Frete, Veiculo.placa, Motorista.nome)
                 .join(Veiculo, Frete.veiculo_id == Veiculo.id)
                 .join(Motorista, Frete.motorista_id == Motorista.id)
-                .order_by(Frete.id.asc())
-                .all()
             )
+
+            if motorista_id is not None:
+                fretes = fretes.filter(Frete.motorista_id == motorista_id)
+
+            fretes = fretes.order_by(Frete.id.asc()).all()
 
             self.tabela_comissoes.setRowCount(len(fretes))
 
             for linha, resultado in enumerate(fretes):
                 frete, placa, motorista = resultado
+                valor_viagem = f"{frete.embarque} → {frete.destino}"
+                valor_base_comissao = frete.valor_frete - frete.pedagio
+                valor_comissao = valor_base_comissao * Decimal("0.11")
+
                 dados = [
                     frete.dia.strftime("%d/%m/%Y"),
                     frete.ordem_servico,
                     motorista,
                     placa,
+                    valor_viagem,
+                    valor_comissao,
+                    frete.observacao or "",
                 ]
+
+                for coluna, valor in enumerate(dados):
+                    if coluna == 5:
+                        valor = self.formatar_moeda(valor)
+
+                    item = QTableWidgetItem(str(valor))
+
+                    if coluna in [0, 1, 3]:
+                        item.setTextAlignment(Qt.AlignCenter)
+
+                    elif coluna == 5:
+                        item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+
+                    self.tabela_comissoes.setItem(linha, coluna, item)
 
         finally:
             sessao.close()
