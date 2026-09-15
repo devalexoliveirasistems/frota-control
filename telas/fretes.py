@@ -125,6 +125,8 @@ class Fretes(QWidget):
             )
         )
 
+        self.campo_frete.editingFinished.connect(self.calcular_saldo)
+
         self.campo_pedagio = QLineEdit()
         self.campo_pedagio.setPlaceholderText("Valor do pedágio")
 
@@ -143,8 +145,11 @@ class Fretes(QWidget):
             )
         )
 
+        self.campo_adiantamento.editingFinished.connect(self.calcular_saldo)
+
         self.campo_saldo = QLineEdit()
         self.campo_saldo.setPlaceholderText("Saldo recebido após descarga")
+        self.campo_saldo.setReadOnly(True)
 
         self.campo_saldo.editingFinished.connect(
             lambda: self.campo_saldo.setText(
@@ -207,6 +212,12 @@ class Fretes(QWidget):
 
         layout_carga.addWidget(QLabel("Transportadora"))
         layout_carga.addWidget(self.campo_transportadora)
+
+        self.campo_observacao = QLineEdit()
+        self.campo_observacao.setPlaceholderText("Observação")
+
+        layout_carga.addWidget(QLabel("Observação"))
+        layout_carga.addWidget(self.campo_observacao)
 
         card_carga.setLayout(layout_carga)
 
@@ -347,7 +358,7 @@ class Fretes(QWidget):
         self.tabela_fretes = TabelaFretes()
         self.tabela_fretes.setEditTriggers(QTableWidget.NoEditTriggers)
 
-        self.tabela_fretes.setColumnCount(13)
+        self.tabela_fretes.setColumnCount(12)
 
         self.tabela_fretes.setHorizontalHeaderLabels(
             [
@@ -577,9 +588,33 @@ class Fretes(QWidget):
         caixa_resumo = QGroupBox("Resumo dos Fretes")
         layout_resumo = QVBoxLayout()
 
-        label_resumo = QLabel("Resumo dos fretes")
+        label_total_fretes = QLabel("Total de fretes")
+        label_total_fretes.setObjectName("labelResumoTitulo")
 
-        layout_resumo.addWidget(label_resumo)
+        self.valor_total_fretes = QLabel("0")
+        self.valor_total_fretes.setObjectName("valorResumo")
+
+        label_total_valor = QLabel("Valor total dos fretes")
+        label_total_valor.setObjectName("labelResumoTitulo")
+
+        self.valor_total_valor = QLabel("R$ 0,00")
+        self.valor_total_valor.setObjectName("valorResumo")
+
+        label_total_pedagio = QLabel("Total de pedágios")
+        label_total_pedagio.setObjectName("labelResumoTitulo")
+
+        self.valor_total_pedagio = QLabel("R$ 0,00")
+        self.valor_total_pedagio.setObjectName("valorResumo")
+
+        layout_resumo.addWidget(label_total_fretes)
+        layout_resumo.addWidget(self.valor_total_fretes)
+
+        layout_resumo.addWidget(label_total_valor)
+        layout_resumo.addWidget(self.valor_total_valor)
+
+        layout_resumo.addWidget(label_total_pedagio)
+        layout_resumo.addWidget(self.valor_total_pedagio)
+
         layout_resumo.addStretch()
 
         caixa_resumo.setLayout(layout_resumo)
@@ -701,6 +736,21 @@ class Fretes(QWidget):
 
         return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
+    def calcular_saldo(self):
+        try:
+            valor_frete = self.converter_valor(self.campo_frete.text())
+            adiantamento = self.converter_valor(self.campo_adiantamento.text())
+
+            saldo = valor_frete - adiantamento
+
+            if saldo < 0:
+                saldo = 0
+
+            self.campo_saldo.setText(self.formatar_moeda(saldo))
+
+        except ValueError:
+            self.campo_saldo.clear()
+
     # ======================================
     # LANÇAR FRETE
     # ======================================
@@ -723,14 +773,28 @@ class Fretes(QWidget):
 
             pedagio = self.converter_valor(self.campo_pedagio.text())
 
+            if pedagio > valor_frete:
+                QMessageBox.warning(
+                    self,
+                    "Valor inválido",
+                    "O pedágio não pode ser maior que o valor do frete.",
+                )
+                return
+
             adiantamento = self.converter_valor(self.campo_adiantamento.text())
 
-            saldo_texto = self.campo_saldo.text().strip()
+            if adiantamento > valor_frete:
+                QMessageBox.warning(
+                    self,
+                    "Valor inválido",
+                    "O adiantamento não pode ser maior que o valor do frete.",
+                )
+                return
 
-            if saldo_texto:
-                saldo = self.converter_valor(saldo_texto)
-            else:
-                saldo = None
+            saldo = valor_frete - adiantamento
+
+            if saldo < 0:
+                saldo = 0
 
             if not ordem_servico:
                 QMessageBox.warning(
@@ -788,6 +852,17 @@ class Fretes(QWidget):
                 )
                 return
 
+            confirmacao = QMessageBox.question(
+                self,
+                "Confirmar lançamento",
+                "Deseja realmente lançar este frete?",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No,
+            )
+
+            if confirmacao == QMessageBox.No:
+                return
+
             sessao = SessionLocal()
 
             try:
@@ -804,6 +879,7 @@ class Fretes(QWidget):
                     adiantamento=adiantamento,
                     saldo=saldo,
                     status=self.campo_status.currentText(),
+                    observacao=self.campo_observacao.text().strip(),
                 )
 
                 sessao.add(frete)
@@ -818,7 +894,15 @@ class Fretes(QWidget):
             finally:
                 sessao.close()
 
+            QMessageBox.information(
+                self,
+                "Frete lançado",
+                "Frete lançado com sucesso!",
+            )
+
             self.carregar_fretes()
+            self.carregar_comissoes()
+            self.carregar_resumo()
             self.limpar_lancamento()
 
         except ValueError:
@@ -871,18 +955,6 @@ class Fretes(QWidget):
 
             self.filtro_placa.clear()
             self.filtro_placa.addItem("Todas", None)
-            veiculos = (
-                SessionLocal()
-                .query(Veiculo)
-                .filter(Veiculo.status == "Ativo")
-                .order_by(Veiculo.placa.asc())
-                .all()
-            )
-
-            for veiculo in veiculos:
-                self.filtro_placa.addItem(veiculo.placa, veiculo.id)
-
-            # Puxa diretamente do cadastro de motoristas e veículos ativos.
             motoristas = (
                 sessao.query(Motorista)
                 .filter(Motorista.status == "Ativo")
@@ -979,6 +1051,25 @@ class Fretes(QWidget):
 
             self.tabela_fretes.setRowHidden(linha, not mostrar)
 
+    def carregar_resumo(self):
+        sessao = SessionLocal()
+
+        try:
+            fretes = sessao.query(Frete).all()
+
+            total_fretes = len(fretes)
+
+            total_valor = sum((frete.valor_frete or Decimal("0")) for frete in fretes)
+
+            total_pedagio = sum((frete.pedagio or Decimal("0")) for frete in fretes)
+
+            self.valor_total_fretes.setText(str(total_fretes))
+            self.valor_total_valor.setText(self.formatar_moeda(total_valor))
+            self.valor_total_pedagio.setText(self.formatar_moeda(total_pedagio))
+
+        finally:
+            sessao.close()
+
     def carregar_comissoes(self):
         motorista_id = self.filtro_comissao_motorista.currentData()
         sessao = SessionLocal()
@@ -1071,6 +1162,8 @@ class Fretes(QWidget):
 
             if janela.exec():
                 self.carregar_fretes()
+                self.carregar_comissoes()
+                self.carregar_resumo()
 
         finally:
             sessao.close()
@@ -1103,5 +1196,6 @@ class Fretes(QWidget):
         self.campo_pedagio.clear()
         self.campo_adiantamento.clear()
         self.campo_saldo.clear()
+        self.campo_observacao.clear()
 
         self.campo_status.setCurrentText("Aguardando saldo")

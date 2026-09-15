@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import QDate
 
 from banco.sessao import SessionLocal
-from banco.modelos import Veiculo
+from banco.modelos import Veiculo, Motorista
 
 
 class EdicaoFrete(QDialog):
@@ -132,6 +132,41 @@ class EdicaoFrete(QDialog):
         layout_principal.addLayout(linha_4)
 
         # ==================================
+        # MOTORISTA
+        # ==================================
+
+        linha_motorista = QHBoxLayout()
+
+        self.campo_motorista = QComboBox()
+        self.campo_motorista.addItem(
+            "Selecione o motorista",
+            None,
+        )
+
+        sessao = SessionLocal()
+
+        try:
+            motoristas = (
+                sessao.query(Motorista)
+                .filter(Motorista.status == "Ativo")
+                .order_by(Motorista.nome.asc())
+                .all()
+            )
+
+            for motorista in motoristas:
+                self.campo_motorista.addItem(
+                    motorista.nome,
+                    motorista.id,
+                )
+        finally:
+            sessao.close()
+
+        linha_motorista.addWidget(QLabel("Motorista"))
+        linha_motorista.addWidget(self.campo_motorista)
+
+        layout_principal.addLayout(linha_motorista)
+
+        # ==================================
         # VALORES
         # ==================================
 
@@ -143,9 +178,16 @@ class EdicaoFrete(QDialog):
 
         self.campo_adiantamento = QLineEdit(self.formatar_moeda(frete.adiantamento))
 
+        self.campo_frete.editingFinished.connect(self.calcular_saldo)
+
+        self.campo_adiantamento.editingFinished.connect(self.calcular_saldo)
+
         self.campo_saldo = QLineEdit(
             "" if frete.saldo is None else self.formatar_moeda(frete.saldo)
         )
+        self.campo_saldo.setReadOnly(True)
+
+        self.calcular_saldo()
 
         linha_5.addWidget(QLabel("Frete"))
         linha_5.addWidget(self.campo_frete)
@@ -263,9 +305,42 @@ class EdicaoFrete(QDialog):
             .replace("X", ".")
         )
 
+    def calcular_saldo(self):
+        try:
+            valor_frete = self.converter_valor(self.campo_frete.text())
+            adiantamento = self.converter_valor(self.campo_adiantamento.text())
+
+            saldo = valor_frete - adiantamento
+
+            if saldo < 0:
+                saldo = 0
+
+            self.campo_saldo.setText(self.formatar_moeda(saldo))
+
+        except ValueError:
+            self.campo_saldo.clear()
+
     def salvar_alteracoes(self):
         try:
             veiculo_id = self.campo_placa.currentData()
+
+            motorista_id = self.campo_motorista.currentData()
+
+            if not self.campo_contrato.text().strip():
+                QMessageBox.warning(
+                    self,
+                    "Campo obrigatório",
+                    "Informe o número do contrato.",
+                )
+                return
+
+            if motorista_id is None:
+                QMessageBox.warning(
+                    self,
+                    "Motorista obrigatório",
+                    "Selecione o motorista.",
+                )
+                return
 
             if veiculo_id is None:
                 QMessageBox.warning(
@@ -275,15 +350,56 @@ class EdicaoFrete(QDialog):
                 )
                 return
 
+            if not self.campo_transportadora.text().strip():
+                QMessageBox.warning(
+                    self,
+                    "Campo obrigatório",
+                    "Informe a transportadora.",
+                )
+                return
+
+            if not self.campo_embarque.text().strip():
+                QMessageBox.warning(
+                    self,
+                    "Campo obrigatório",
+                    "Informe o local de embarque.",
+                )
+                return
+
+            if not self.campo_destino.text().strip():
+                QMessageBox.warning(
+                    self,
+                    "Campo obrigatório",
+                    "Informe o local de destino.",
+                )
+                return
+
             valor_frete = self.converter_valor(self.campo_frete.text())
 
             pedagio = self.converter_valor(self.campo_pedagio.text())
 
+            if pedagio > valor_frete:
+                QMessageBox.warning(
+                    self,
+                    "Valor inválido",
+                    "O pedágio não pode ser maior que o valor do frete.",
+                )
+                return
+
             adiantamento = self.converter_valor(self.campo_adiantamento.text())
 
-            saldo_texto = self.campo_saldo.text().strip()
+            if adiantamento > valor_frete:
+                QMessageBox.warning(
+                    self,
+                    "Valor inválido",
+                    "O adiantamento não pode ser maior que o valor do frete.",
+                )
+                return
 
-            saldo = None if not saldo_texto else self.converter_valor(saldo_texto)
+            saldo = valor_frete - adiantamento
+
+            if saldo < 0:
+                saldo = 0
 
             sessao = SessionLocal()
 
@@ -299,6 +415,8 @@ class EdicaoFrete(QDialog):
                 self.frete.destino = self.campo_destino.text().strip()
 
                 self.frete.veiculo_id = veiculo_id
+
+                self.frete.motorista_id = motorista_id
 
                 self.frete.valor_frete = valor_frete
 
