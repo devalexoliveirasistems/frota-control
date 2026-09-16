@@ -274,6 +274,12 @@ class Fretes(QWidget):
         botao_editar = QPushButton("Editar frete")
         botao_editar.setMinimumWidth(140)
 
+        botao_excluir = QPushButton("Excluir frete")
+
+        botao_excluir.setMinimumWidth(140)
+
+        botao_excluir.clicked.connect(self.excluir_frete)
+
         layout_lancamento.addLayout(linha_botao)
 
         caixa_lancamento.setLayout(layout_lancamento)
@@ -339,6 +345,8 @@ class Fretes(QWidget):
 
         layout_fretes.addLayout(linha_filtros)
         layout_fretes.addWidget(botao_editar)
+        layout_fretes.addWidget(botao_excluir)
+
         sessao = SessionLocal()
 
         try:
@@ -1120,6 +1128,64 @@ class Fretes(QWidget):
 
         finally:
             sessao.close()
+
+    def excluir_frete(self):
+        linha = self.tabela_fretes.currentRow()
+
+        if linha < 0:
+            QMessageBox.warning(
+                self,
+                "Nenhum frete selecionado",
+                "Selecione um frete para excluir.",
+            )
+            return
+
+        item = self.tabela_fretes.item(linha, 0)
+
+        if not item:
+            return
+
+        id_frete = item.data(Qt.UserRole)
+
+        confirmacao = QMessageBox.question(
+            self,
+            "Confirmar exclusão",
+            "Deseja realmente excluir este frete?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+
+        if confirmacao == QMessageBox.No:
+            return
+
+        sessao = SessionLocal()
+
+        try:
+            frete = sessao.query(Frete).filter(Frete.id == id_frete).first()
+
+            if not frete:
+                QMessageBox.warning(
+                    self,
+                    "Frete não encontrado",
+                    "O frete selecionado não foi encontrado no banco.",
+                )
+                return
+
+            sessao.delete(frete)
+            sessao.commit()
+
+        finally:
+            sessao.close()
+
+        QMessageBox.information(
+            self,
+            "Frete excluído",
+            "Frete excluído com sucesso!",
+        )
+
+        self.carregar_fretes()
+        self.carregar_comissoes()
+        self.carregar_resumo()
 
     def editar_frete(self):
         linha = self.tabela_fretes.currentRow()
