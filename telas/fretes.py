@@ -595,6 +595,18 @@ class Fretes(QWidget):
 
         caixa_resumo = QGroupBox("Resumo dos Fretes")
         layout_resumo = QVBoxLayout()
+        layout_resumo.setSpacing(15)
+
+        # ==================================
+        # CARDS DO RESUMO
+        # ==================================
+
+        linha_cards_resumo = QHBoxLayout()
+        linha_cards_resumo.setSpacing(12)
+
+        # TOTAL DE FRETES
+        card_total_fretes = QGroupBox()
+        layout_card_total_fretes = QVBoxLayout()
 
         label_total_fretes = QLabel("Total de fretes")
         label_total_fretes.setObjectName("labelResumoTitulo")
@@ -602,11 +614,29 @@ class Fretes(QWidget):
         self.valor_total_fretes = QLabel("0")
         self.valor_total_fretes.setObjectName("valorResumo")
 
+        layout_card_total_fretes.addWidget(label_total_fretes)
+        layout_card_total_fretes.addWidget(self.valor_total_fretes)
+
+        card_total_fretes.setLayout(layout_card_total_fretes)
+
+        # VALOR TOTAL
+        card_total_valor = QGroupBox()
+        layout_card_total_valor = QVBoxLayout()
+
         label_total_valor = QLabel("Valor total dos fretes")
         label_total_valor.setObjectName("labelResumoTitulo")
 
         self.valor_total_valor = QLabel("R$ 0,00")
         self.valor_total_valor.setObjectName("valorResumo")
+
+        layout_card_total_valor.addWidget(label_total_valor)
+        layout_card_total_valor.addWidget(self.valor_total_valor)
+
+        card_total_valor.setLayout(layout_card_total_valor)
+
+        # TOTAL DE PEDÁGIOS
+        card_total_pedagio = QGroupBox()
+        layout_card_total_pedagio = QVBoxLayout()
 
         label_total_pedagio = QLabel("Total de pedágios")
         label_total_pedagio.setObjectName("labelResumoTitulo")
@@ -614,16 +644,65 @@ class Fretes(QWidget):
         self.valor_total_pedagio = QLabel("R$ 0,00")
         self.valor_total_pedagio.setObjectName("valorResumo")
 
-        layout_resumo.addWidget(label_total_fretes)
-        layout_resumo.addWidget(self.valor_total_fretes)
+        layout_card_total_pedagio.addWidget(label_total_pedagio)
+        layout_card_total_pedagio.addWidget(self.valor_total_pedagio)
 
-        layout_resumo.addWidget(label_total_valor)
-        layout_resumo.addWidget(self.valor_total_valor)
+        card_total_pedagio.setLayout(layout_card_total_pedagio)
 
-        layout_resumo.addWidget(label_total_pedagio)
-        layout_resumo.addWidget(self.valor_total_pedagio)
+        linha_cards_resumo.addWidget(card_total_fretes)
 
-        layout_resumo.addStretch()
+        linha_cards_resumo.addWidget(card_total_valor)
+
+        linha_cards_resumo.addWidget(card_total_pedagio)
+
+        # TOTAL DE COMISSÕES
+
+        card_total_comissao = QGroupBox()
+        layout_card_total_comissao = QVBoxLayout()
+
+        label_total_comissao = QLabel("Total de comissões")
+        label_total_comissao.setObjectName("labelResumoTitulo")
+
+        self.valor_total_comissao = QLabel("R$ 0,00")
+        self.valor_total_comissao.setObjectName("valorResumo")
+
+        layout_card_total_comissao.addWidget(label_total_comissao)
+        layout_card_total_comissao.addWidget(self.valor_total_comissao)
+
+        card_total_comissao.setLayout(layout_card_total_comissao)
+
+        linha_cards_resumo.addWidget(card_total_comissao)
+
+        layout_resumo.addLayout(linha_cards_resumo)
+
+        # ==================================
+        # FILTRO DE PERÍODO
+        # ==================================
+
+        linha_periodo = QHBoxLayout()
+
+        linha_periodo.addWidget(QLabel("Data inicial"))
+
+        self.filtro_data_inicial = QDateEdit()
+        self.filtro_data_inicial.setCalendarPopup(True)
+        self.filtro_data_inicial.setDate(QDate.currentDate().addDays(-30))
+
+        linha_periodo.addWidget(self.filtro_data_inicial)
+
+        linha_periodo.addWidget(QLabel("Data final"))
+
+        self.filtro_data_final = QDateEdit()
+        self.filtro_data_final.setCalendarPopup(True)
+        self.filtro_data_final.setDate(QDate.currentDate())
+
+        linha_periodo.addWidget(self.filtro_data_final)
+
+        botao_limpar_filtro = QPushButton("Limpar filtros")
+        botao_limpar_filtro.clicked.connect(self.limpar_filtro_resumo)
+
+        linha_periodo.addWidget(botao_limpar_filtro)
+
+        layout_resumo.insertLayout(0, linha_periodo)
 
         caixa_resumo.setLayout(layout_resumo)
 
@@ -651,6 +730,9 @@ class Fretes(QWidget):
 
         self.carregar_fretes()
         self.carregar_comissoes()
+        self.carregar_resumo()
+        self.filtro_data_inicial.dateChanged.connect(self.carregar_resumo)
+        self.filtro_data_final.dateChanged.connect(self.carregar_resumo)
 
     # ======================================
     # PLACAS
@@ -1059,11 +1141,23 @@ class Fretes(QWidget):
 
             self.tabela_fretes.setRowHidden(linha, not mostrar)
 
+    def limpar_filtro_resumo(self):
+        self.filtro_data_inicial.setDate(QDate.currentDate().addDays(-30))
+        self.filtro_data_final.setDate(QDate.currentDate())
+        self.carregar_resumo()
+
     def carregar_resumo(self):
         sessao = SessionLocal()
 
         try:
-            fretes = sessao.query(Frete).all()
+            fretes = (
+                sessao.query(Frete)
+                .filter(
+                    Frete.dia >= self.filtro_data_inicial.date().toPython(),
+                    Frete.dia <= self.filtro_data_final.date().toPython(),
+                )
+                .all()
+            )
 
             total_fretes = len(fretes)
 
@@ -1071,9 +1165,19 @@ class Fretes(QWidget):
 
             total_pedagio = sum((frete.pedagio or Decimal("0")) for frete in fretes)
 
+            total_comissao = sum(
+                ((frete.valor_frete or Decimal("0")) - (frete.pedagio or Decimal("0")))
+                * Decimal("0.11")
+                for frete in fretes
+            )
+
             self.valor_total_fretes.setText(str(total_fretes))
+
             self.valor_total_valor.setText(self.formatar_moeda(total_valor))
+
             self.valor_total_pedagio.setText(self.formatar_moeda(total_pedagio))
+
+            self.valor_total_comissao.setText(self.formatar_moeda(total_comissao))
 
         finally:
             sessao.close()
