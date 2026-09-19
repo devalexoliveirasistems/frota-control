@@ -145,6 +145,11 @@ class Frete(Base):
         nullable=False,
     )
 
+    peso: Mapped[float | None] = mapped_column(
+        Numeric(12, 2),
+        nullable=True,
+    )
+
     veiculo_id: Mapped[int] = mapped_column(
         ForeignKey("veiculos.id"),
         nullable=False,

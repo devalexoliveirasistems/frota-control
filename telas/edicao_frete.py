@@ -67,8 +67,14 @@ class EdicaoFrete(QDialog):
 
         self.campo_transportadora = QLineEdit(frete.transportadora)
 
+        self.campo_peso = QLineEdit("" if frete.peso is None else str(frete.peso))
+        self.campo_peso.setPlaceholderText("Peso da carga (kg)")
+
         linha_2.addWidget(QLabel("Transportadora"))
         linha_2.addWidget(self.campo_transportadora)
+
+        linha_2.addWidget(QLabel("Peso (kg)"))
+        linha_2.addWidget(self.campo_peso)
 
         layout_principal.addLayout(linha_2)
 
@@ -401,6 +407,22 @@ class EdicaoFrete(QDialog):
             if saldo < 0:
                 saldo = 0
 
+            peso = None
+
+            texto_peso = self.campo_peso.text().strip()
+
+            if texto_peso:
+                texto_peso = texto_peso.replace(".", "").replace(",", ".")
+                peso = float(texto_peso)
+
+                if peso <= 0:
+                    QMessageBox.warning(
+                        self,
+                        "Peso inválido",
+                        "Informe um peso maior que zero.",
+                    )
+                    return
+
             sessao = SessionLocal()
 
             try:
@@ -413,6 +435,8 @@ class EdicaoFrete(QDialog):
                 self.frete.embarque = self.campo_embarque.text().strip()
 
                 self.frete.destino = self.campo_destino.text().strip()
+
+                self.frete.peso = peso
 
                 self.frete.veiculo_id = veiculo_id
 
