@@ -178,6 +178,9 @@ class Fretes(QWidget):
 
         self.campo_status.setCurrentText("Aguardando saldo")
 
+        self.campo_observacao = QLineEdit()
+        self.campo_observacao.setPlaceholderText("Observação")
+
         # ==================================
         # CARD 1 — DADOS DA VIAGEM
         # ==================================
@@ -196,10 +199,8 @@ class Fretes(QWidget):
         layout_dados.addWidget(self.campo_placa, 3, 0)
         layout_dados.addWidget(self.campo_motorista, 3, 1)
 
-        layout_dados.addWidget(QLabel("Origem"), 4, 0)
-        layout_dados.addWidget(QLabel("Destino"), 4, 1)
-        layout_dados.addWidget(self.campo_embarque, 5, 0)
-        layout_dados.addWidget(self.campo_destino, 5, 1)
+        layout_dados.addWidget(QLabel("Observação"), 4, 0, 1, 2)
+        layout_dados.addWidget(self.campo_observacao, 5, 0, 1, 2)
 
         layout_dados.setColumnStretch(0, 1)
         layout_dados.setColumnStretch(1, 1)
@@ -214,17 +215,17 @@ class Fretes(QWidget):
         layout_carga = QVBoxLayout()
         layout_carga.setSpacing(8)
 
+        layout_carga.addWidget(QLabel("Origem"))
+        layout_carga.addWidget(self.campo_embarque)
+
+        layout_carga.addWidget(QLabel("Destino"))
+        layout_carga.addWidget(self.campo_destino)
+
         layout_carga.addWidget(QLabel("Transportadora"))
         layout_carga.addWidget(self.campo_transportadora)
 
         layout_carga.addWidget(QLabel("Peso da carga (kg)"))
         layout_carga.addWidget(self.campo_peso)
-
-        self.campo_observacao = QLineEdit()
-        self.campo_observacao.setPlaceholderText("Observação")
-
-        layout_carga.addWidget(QLabel("Observação"))
-        layout_carga.addWidget(self.campo_observacao)
 
         layout_carga.addStretch()
 
@@ -307,6 +308,8 @@ class Fretes(QWidget):
         layout_aba_gestao.addWidget(caixa_lancamento)
 
         abas = QTabWidget()
+
+        caixa_lancamento.setMaximumHeight(330)
 
         # ==================================
         # ABA — FRETES LANÇADOS
@@ -760,6 +763,9 @@ class Fretes(QWidget):
         abas.addTab(aba_resumo, "Resumo")
 
         layout_aba_gestao.addWidget(abas)
+
+        layout_aba_gestao.setStretch(0, 0)
+        layout_aba_gestao.setStretch(1, 1)
 
         layout_principal.addWidget(aba_gestao, 1)
         self.setLayout(layout_principal)

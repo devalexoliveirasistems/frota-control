@@ -2,6 +2,7 @@ from PySide6.QtWidgets import (
     QDialog,
     QVBoxLayout,
     QHBoxLayout,
+    QGridLayout,
     QLabel,
     QPushButton,
     QLineEdit,
@@ -22,9 +23,12 @@ class EdicaoFrete(QDialog):
         self.frete = frete
 
         self.setWindowTitle("Editar Frete")
-        self.resize(800, 500)
+        self.resize(900, 650)
+        self.setMinimumSize(850, 600)
 
         layout_principal = QVBoxLayout()
+        layout_principal.setContentsMargins(25, 20, 25, 20)
+        layout_principal.setSpacing(15)
 
         titulo = QLabel("Editar Frete")
         titulo.setStyleSheet("""
@@ -36,8 +40,6 @@ class EdicaoFrete(QDialog):
         # ==================================
         # CONTRATO / DATA
         # ==================================
-
-        linha_1 = QHBoxLayout()
 
         self.campo_contrato = QLineEdit(str(frete.ordem_servico))
 
@@ -51,56 +53,71 @@ class EdicaoFrete(QDialog):
             )
         )
 
-        linha_1.addWidget(QLabel("N° Contrato"))
-        linha_1.addWidget(self.campo_contrato)
+        grid_contrato = QGridLayout()
+        grid_contrato.setHorizontalSpacing(15)
+        grid_contrato.setVerticalSpacing(6)
 
-        linha_1.addWidget(QLabel("Dia"))
-        linha_1.addWidget(self.campo_dia)
+        grid_contrato.addWidget(QLabel("N° Contrato"), 0, 0)
+        grid_contrato.addWidget(QLabel("Data"), 0, 1)
 
-        layout_principal.addLayout(linha_1)
+        grid_contrato.addWidget(self.campo_contrato, 1, 0)
+        grid_contrato.addWidget(self.campo_dia, 1, 1)
+
+        grid_contrato.setColumnStretch(0, 1)
+        grid_contrato.setColumnStretch(1, 1)
+
+        layout_principal.addLayout(grid_contrato)
 
         # ==================================
-        # TRANSPORTADORA
+        # TRANSPORTADORA / PESO
         # ==================================
-
-        linha_2 = QHBoxLayout()
 
         self.campo_transportadora = QLineEdit(frete.transportadora)
 
         self.campo_peso = QLineEdit("" if frete.peso is None else str(frete.peso))
         self.campo_peso.setPlaceholderText("Peso da carga (kg)")
 
-        linha_2.addWidget(QLabel("Transportadora"))
-        linha_2.addWidget(self.campo_transportadora)
+        grid_transportadora = QGridLayout()
+        grid_transportadora.setHorizontalSpacing(15)
+        grid_transportadora.setVerticalSpacing(6)
 
-        linha_2.addWidget(QLabel("Peso (kg)"))
-        linha_2.addWidget(self.campo_peso)
+        grid_transportadora.addWidget(QLabel("Transportadora"), 0, 0)
+        grid_transportadora.addWidget(QLabel("Peso (kg)"), 0, 1)
 
-        layout_principal.addLayout(linha_2)
+        grid_transportadora.addWidget(self.campo_transportadora, 1, 0)
+        grid_transportadora.addWidget(self.campo_peso, 1, 1)
+
+        grid_transportadora.setColumnStretch(0, 1)
+        grid_transportadora.setColumnStretch(1, 1)
+
+        layout_principal.addLayout(grid_transportadora)
 
         # ==================================
         # EMBARQUE / DESTINO
         # ==================================
 
-        linha_3 = QHBoxLayout()
-
         self.campo_embarque = QLineEdit(frete.embarque)
 
         self.campo_destino = QLineEdit(frete.destino)
 
-        linha_3.addWidget(QLabel("Embarque"))
-        linha_3.addWidget(self.campo_embarque)
+        grid_origem_destino = QGridLayout()
+        grid_origem_destino.setHorizontalSpacing(15)
+        grid_origem_destino.setVerticalSpacing(6)
 
-        linha_3.addWidget(QLabel("Destino"))
-        linha_3.addWidget(self.campo_destino)
+        grid_origem_destino.addWidget(QLabel("Embarque"), 0, 0)
+        grid_origem_destino.addWidget(QLabel("Destino"), 0, 1)
 
-        layout_principal.addLayout(linha_3)
+        grid_origem_destino.addWidget(self.campo_embarque, 1, 0)
+        grid_origem_destino.addWidget(self.campo_destino, 1, 1)
+
+        grid_origem_destino.setColumnStretch(0, 1)
+        grid_origem_destino.setColumnStretch(1, 1)
+
+        layout_principal.addLayout(grid_origem_destino)
 
         # ==================================
-        # PLACA
+        # PLACA / MOTORISTA
         # ==================================
-
-        linha_4 = QHBoxLayout()
 
         self.campo_placa = QComboBox()
         self.campo_placa.addItem(
@@ -132,10 +149,49 @@ class EdicaoFrete(QDialog):
         if indice >= 0:
             self.campo_placa.setCurrentIndex(indice)
 
-        linha_4.addWidget(QLabel("Placa"))
-        linha_4.addWidget(self.campo_placa)
+        self.campo_motorista = QComboBox()
+        self.campo_motorista.addItem(
+            "Selecione o motorista",
+            None,
+        )
 
-        layout_principal.addLayout(linha_4)
+        sessao = SessionLocal()
+
+        try:
+            motoristas = (
+                sessao.query(Motorista)
+                .filter(Motorista.status == "Ativo")
+                .order_by(Motorista.nome.asc())
+                .all()
+            )
+
+            for motorista in motoristas:
+                self.campo_motorista.addItem(
+                    motorista.nome,
+                    motorista.id,
+                )
+        finally:
+            sessao.close()
+
+        indice_motorista = self.campo_motorista.findData(frete.motorista_id)
+
+        if indice_motorista >= 0:
+            self.campo_motorista.setCurrentIndex(indice_motorista)
+
+        grid_veiculo = QGridLayout()
+        grid_veiculo.setHorizontalSpacing(15)
+        grid_veiculo.setVerticalSpacing(6)
+
+        grid_veiculo.addWidget(QLabel("Placa"), 0, 0)
+        grid_veiculo.addWidget(QLabel("Motorista"), 0, 1)
+
+        grid_veiculo.addWidget(self.campo_placa, 1, 0)
+        grid_veiculo.addWidget(self.campo_motorista, 1, 1)
+
+        grid_veiculo.setColumnStretch(0, 1)
+        grid_veiculo.setColumnStretch(1, 1)
+
+        layout_principal.addLayout(grid_veiculo)
 
         # ==================================
         # MOTORISTA
@@ -176,8 +232,6 @@ class EdicaoFrete(QDialog):
         # VALORES
         # ==================================
 
-        linha_5 = QHBoxLayout()
-
         self.campo_frete = QLineEdit(self.formatar_moeda(frete.valor_frete))
 
         self.campo_pedagio = QLineEdit(self.formatar_moeda(frete.pedagio))
@@ -185,7 +239,6 @@ class EdicaoFrete(QDialog):
         self.campo_adiantamento = QLineEdit(self.formatar_moeda(frete.adiantamento))
 
         self.campo_frete.editingFinished.connect(self.calcular_saldo)
-
         self.campo_adiantamento.editingFinished.connect(self.calcular_saldo)
 
         self.campo_saldo = QLineEdit(
@@ -195,43 +248,45 @@ class EdicaoFrete(QDialog):
 
         self.calcular_saldo()
 
-        linha_5.addWidget(QLabel("Frete"))
-        linha_5.addWidget(self.campo_frete)
+        grid_valores = QGridLayout()
+        grid_valores.setHorizontalSpacing(15)
+        grid_valores.setVerticalSpacing(6)
 
-        linha_5.addWidget(QLabel("Pedágio"))
-        linha_5.addWidget(self.campo_pedagio)
+        grid_valores.addWidget(QLabel("Frete"), 0, 0)
+        grid_valores.addWidget(QLabel("Pedágio"), 0, 1)
+        grid_valores.addWidget(self.campo_frete, 1, 0)
+        grid_valores.addWidget(self.campo_pedagio, 1, 1)
 
-        layout_principal.addLayout(linha_5)
+        grid_valores.addWidget(QLabel("Adiantamento"), 2, 0)
+        grid_valores.addWidget(QLabel("Saldo recebido"), 2, 1)
+        grid_valores.addWidget(self.campo_adiantamento, 3, 0)
+        grid_valores.addWidget(self.campo_saldo, 3, 1)
 
-        linha_6 = QHBoxLayout()
+        grid_valores.setColumnStretch(0, 1)
+        grid_valores.setColumnStretch(1, 1)
 
-        linha_6.addWidget(QLabel("Adiantamento"))
-        linha_6.addWidget(self.campo_adiantamento)
-
-        linha_6.addWidget(QLabel("Saldo recebido"))
-        linha_6.addWidget(self.campo_saldo)
-
-        layout_principal.addLayout(linha_6)
+        layout_principal.addLayout(grid_valores)
 
         # ==================================
         # OBSERVAÇÃO
         # ==================================
-        linha_observacao = QHBoxLayout()
 
         self.campo_observacao = QLineEdit(
             "" if frete.observacao is None else frete.observacao
         )
+        self.campo_observacao.setPlaceholderText("Observação")
 
-        linha_observacao.addWidget(QLabel("Observação"))
-        linha_observacao.addWidget(self.campo_observacao)
+        grid_observacao = QGridLayout()
+        grid_observacao.setVerticalSpacing(6)
 
-        layout_principal.addLayout(linha_observacao)
+        grid_observacao.addWidget(QLabel("Observação"), 0, 0)
+        grid_observacao.addWidget(self.campo_observacao, 1, 0)
+
+        layout_principal.addLayout(grid_observacao)
 
         # ==================================
         # STATUS
         # ==================================
-
-        linha_7 = QHBoxLayout()
 
         self.campo_status = QComboBox()
 
@@ -251,35 +306,31 @@ class EdicaoFrete(QDialog):
 
         self.campo_status.setCurrentText(frete.status)
 
-        linha_7.addWidget(QLabel("Status"))
-        linha_7.addWidget(self.campo_status)
+        grid_status = QGridLayout()
+        grid_status.setVerticalSpacing(6)
 
-        layout_principal.addLayout(linha_7)
+        grid_status.addWidget(QLabel("Status"), 0, 0)
+        grid_status.addWidget(self.campo_status, 1, 0)
+
+        layout_principal.addLayout(grid_status)
 
         # ==================================
         # BOTÕES
         # ==================================
 
         linha_botoes = QHBoxLayout()
-
         linha_botoes.addStretch()
 
         botao_cancelar = QPushButton("Cancelar")
+        botao_cancelar.setMinimumWidth(120)
 
         botao_salvar = QPushButton("Salvar alterações")
-
         botao_salvar.setMinimumWidth(160)
 
         linha_botoes.addWidget(botao_cancelar)
         linha_botoes.addWidget(botao_salvar)
 
         layout_principal.addLayout(linha_botoes)
-
-        botao_cancelar.clicked.connect(self.reject)
-
-        botao_salvar.clicked.connect(self.salvar_alteracoes)
-
-        self.setLayout(layout_principal)
 
     def converter_valor(self, texto):
         texto = texto.strip()
