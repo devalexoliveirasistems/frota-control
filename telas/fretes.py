@@ -323,25 +323,77 @@ class Fretes(QWidget):
         caixa_fretes = QGroupBox("Fretes Lançados")
         layout_fretes = QVBoxLayout()
 
-        # ==================================
-        # FILTROS — MOTORISTA E PLACA
-        # ==================================
+        # FILTROS
 
         linha_filtros = QHBoxLayout()
+        linha_filtros.setSpacing(10)
 
         linha_filtros.addWidget(QLabel("Motorista:"))
 
         self.filtro_motorista = QComboBox()
         self.filtro_motorista.addItem("Todos", None)
         self.filtro_motorista.currentIndexChanged.connect(self.aplicar_filtros_fretes)
-        linha_filtros.addWidget(self.filtro_motorista, 1)
+        linha_filtros.addWidget(self.filtro_motorista)
 
         linha_filtros.addWidget(QLabel("Placa:"))
 
         self.filtro_placa = QComboBox()
         self.filtro_placa.addItem("Todas", None)
         self.filtro_placa.currentIndexChanged.connect(self.aplicar_filtros_fretes)
-        linha_filtros.addWidget(self.filtro_placa, 1)
+        linha_filtros.addWidget(self.filtro_placa)
+
+        linha_filtros.addWidget(QLabel("Data inicial:"))
+
+        self.filtro_fretes_data_inicial = QDateEdit()
+        self.filtro_fretes_data_inicial.setCalendarPopup(True)
+        self.filtro_fretes_data_inicial.setDate(QDate.currentDate().addDays(-30))
+        self.filtro_fretes_data_inicial.dateChanged.connect(self.aplicar_filtros_fretes)
+        linha_filtros.addWidget(self.filtro_fretes_data_inicial)
+
+        linha_filtros.addWidget(QLabel("Data final:"))
+
+        self.filtro_fretes_data_final = QDateEdit()
+        self.filtro_fretes_data_final.setCalendarPopup(True)
+        self.filtro_fretes_data_final.setDate(QDate.currentDate())
+        self.filtro_fretes_data_final.dateChanged.connect(self.aplicar_filtros_fretes)
+        linha_filtros.addWidget(self.filtro_fretes_data_final)
+
+        botao_limpar_filtros = QPushButton("Limpar filtros")
+        botao_limpar_filtros.clicked.connect(self.limpar_filtros_fretes)
+        linha_filtros.addWidget(botao_limpar_filtros)
+        self.valor_fretes_filtrados = QLabel("Fretes: 0")
+        linha_filtros.addWidget(self.valor_fretes_filtrados)
+
+        self.valor_valor_fretes_filtrados = QLabel("Total: R$ 0,00")
+        linha_filtros.addWidget(self.valor_valor_fretes_filtrados)
+
+        layout_fretes.addLayout(linha_filtros)
+
+        # ==================================
+        # FILTRO — PERÍODO
+        # ==================================
+
+        linha_datas = QHBoxLayout()
+        linha_datas.setSpacing(10)
+
+        linha_datas.addWidget(QLabel("Data inicial:"))
+
+        self.filtro_fretes_data_inicial = QDateEdit()
+        self.filtro_fretes_data_inicial.setCalendarPopup(True)
+        self.filtro_fretes_data_inicial.setDate(QDate.currentDate().addDays(-30))
+
+        linha_datas.addWidget(self.filtro_fretes_data_inicial)
+
+        linha_datas.addWidget(QLabel("Data final:"))
+
+        self.filtro_fretes_data_final = QDateEdit()
+        self.filtro_fretes_data_final.setCalendarPopup(True)
+        self.filtro_fretes_data_final.setDate(QDate.currentDate())
+        self.filtro_fretes_data_inicial.dateChanged.connect(self.aplicar_filtros_fretes)
+
+        self.filtro_fretes_data_final.dateChanged.connect(self.aplicar_filtros_fretes)
+
+        linha_datas.addWidget(self.filtro_fretes_data_final)
 
         layout_fretes.addLayout(linha_filtros)
         layout_fretes.addWidget(botao_editar)
@@ -1121,6 +1173,14 @@ class Fretes(QWidget):
         finally:
             sessao.close()
 
+    def limpar_filtros_fretes(self):
+        self.filtro_motorista.setCurrentIndex(0)
+        self.filtro_placa.setCurrentIndex(0)
+        self.filtro_fretes_data_inicial.setDate(QDate.currentDate().addDays(-30))
+        self.filtro_fretes_data_final.setDate(QDate.currentDate())
+
+        self.aplicar_filtros_fretes()
+
     def aplicar_filtros_fretes(self):
         motorista_id = self.filtro_motorista.currentData()
         veiculo_id = self.filtro_placa.currentData()
@@ -1140,6 +1200,34 @@ class Fretes(QWidget):
             )
 
             self.tabela_fretes.setRowHidden(linha, not mostrar)
+
+            total_visiveis = sum(
+                not self.tabela_fretes.isRowHidden(linha)
+                for linha in range(self.tabela_fretes.rowCount())
+            )
+
+            self.valor_fretes_filtrados.setText(f"Fretes: {total_visiveis}")
+
+            total_filtrado = Decimal("0")
+
+            for linha in range(self.tabela_fretes.rowCount()):
+                if not self.tabela_fretes.isRowHidden(linha):
+                    item_frete = self.tabela_fretes.item(linha, 7)
+
+                    if item_frete:
+                        valor = (
+                            item_frete.text()
+                            .replace("R$", "")
+                            .replace(".", "")
+                            .replace(",", ".")
+                            .strip()
+                        )
+
+                        total_filtrado += Decimal(valor)
+
+            self.valor_valor_fretes_filtrados.setText(
+                f"Total: {self.formatar_moeda(total_filtrado)}"
+            )
 
     def limpar_filtro_resumo(self):
         self.filtro_data_inicial.setDate(QDate.currentDate().addDays(-30))
