@@ -61,6 +61,8 @@ class Fretes(QWidget):
     def __init__(self):
         super().__init__()
 
+        
+
         layout_principal = QVBoxLayout()
         layout_principal.setContentsMargins(10, 5, 10, 5)
         layout_principal.setSpacing(10)
@@ -78,6 +80,24 @@ class Fretes(QWidget):
         # ==================================
 
         caixa_lancamento = QGroupBox("Lançamento do Frete")
+        caixa_lancamento.setStyleSheet("""
+            QGroupBox {
+                border: 1px solid #d9dee7;
+                border-radius: 10px;
+                margin-top: 12px;
+                padding: 14px;
+                background-color: #ffffff;
+            }
+
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 12px;
+                padding: 0 6px;
+                color: #111827;
+                font-size: 15px;
+                font-weight: bold;
+            }
+        """)
         layout_lancamento = QVBoxLayout()
         layout_lancamento.setSpacing(15)
 
@@ -187,7 +207,7 @@ class Fretes(QWidget):
         card_dados = QGroupBox("1. Dados da viagem")
         layout_dados = QGridLayout()
         layout_dados.setHorizontalSpacing(10)
-        layout_dados.setVerticalSpacing(6)
+        layout_dados.setVerticalSpacing(8)
 
         layout_dados.addWidget(QLabel("N° Contrato"), 0, 0)
         layout_dados.addWidget(QLabel("Data"), 0, 1)
@@ -212,22 +232,22 @@ class Fretes(QWidget):
         # ==================================
 
         card_carga = QGroupBox("2. Carga")
-        layout_carga = QVBoxLayout()
-        layout_carga.setSpacing(8)
+        layout_carga = QGridLayout()
+        layout_carga.setHorizontalSpacing(10)
+        layout_carga.setVerticalSpacing(8)
 
-        layout_carga.addWidget(QLabel("Origem"))
-        layout_carga.addWidget(self.campo_embarque)
+        layout_carga.addWidget(QLabel("Origem"), 0, 0)
+        layout_carga.addWidget(QLabel("Destino"), 0, 1)
+        layout_carga.addWidget(self.campo_embarque, 1, 0)
+        layout_carga.addWidget(self.campo_destino, 1, 1)
 
-        layout_carga.addWidget(QLabel("Destino"))
-        layout_carga.addWidget(self.campo_destino)
+        layout_carga.addWidget(QLabel("Transportadora"), 2, 0)
+        layout_carga.addWidget(QLabel("Peso da carga (kg)"), 2, 1)
+        layout_carga.addWidget(self.campo_transportadora, 3, 0)
+        layout_carga.addWidget(self.campo_peso, 3, 1)
 
-        layout_carga.addWidget(QLabel("Transportadora"))
-        layout_carga.addWidget(self.campo_transportadora)
-
-        layout_carga.addWidget(QLabel("Peso da carga (kg)"))
-        layout_carga.addWidget(self.campo_peso)
-
-        layout_carga.addStretch()
+        layout_carga.setColumnStretch(0, 1)
+        layout_carga.setColumnStretch(1, 1)
 
         card_carga.setLayout(layout_carga)
 
@@ -238,7 +258,7 @@ class Fretes(QWidget):
         card_valores = QGroupBox("3. Valores")
         layout_valores = QGridLayout()
         layout_valores.setHorizontalSpacing(10)
-        layout_valores.setVerticalSpacing(6)
+        layout_valores.setVerticalSpacing(8)
 
         layout_valores.addWidget(QLabel("Frete"), 0, 0)
         layout_valores.addWidget(QLabel("Pedágio"), 0, 1)
@@ -258,16 +278,36 @@ class Fretes(QWidget):
 
         card_valores.setLayout(layout_valores)
 
+        for card in (card_dados, card_carga, card_valores):
+            card.setStyleSheet("""
+                QGroupBox {
+                    background-color: #ffffff;
+                    border: 1px solid #d9dee7;
+                    border-radius: 8px;
+                    margin-top: 10px;
+                    padding: 10px;
+                    font-weight: bold;
+                }
+
+                QGroupBox::title {
+                    subcontrol-origin: margin;
+                    left: 10px;
+                    padding: 0 5px;
+                    color: #1f2937;
+                }
+            """)
+
         # ==================================
         # 3 CARDS DENTRO DO CARD MAIOR
         # ==================================
 
         linha_cards = QHBoxLayout()
         linha_cards.setSpacing(12)
+        linha_cards.setContentsMargins(0, 0, 0, 0)
 
-        linha_cards.addWidget(card_dados, 1)
-        linha_cards.addWidget(card_carga, 1)
-        linha_cards.addWidget(card_valores, 1)
+        linha_cards.addWidget(card_dados, 3)
+        linha_cards.addWidget(card_carga, 4)
+        linha_cards.addWidget(card_valores, 3)
 
         layout_lancamento.addLayout(linha_cards)
 
@@ -280,15 +320,59 @@ class Fretes(QWidget):
 
         botao_lancar = QPushButton("Lançar frete")
         botao_lancar.setMinimumWidth(140)
+        botao_lancar.setMinimumHeight(36)
+        botao_lancar.setStyleSheet("""
+            QPushButton {
+                background-color: #2563eb;
+                color: white;
+                border: none;
+                border-radius: 7px;
+                padding: 8px 18px;
+                font-weight: bold;
+            }
+
+            QPushButton:hover {
+                background-color: #1d4ed8;
+            }
+        """)
 
         linha_botao.addWidget(botao_lancar)
 
         botao_editar = QPushButton("Editar frete")
         botao_editar.setMinimumWidth(140)
+        botao_editar.setMinimumHeight(34)
+        botao_editar.setStyleSheet("""
+            QPushButton {
+                background-color: #f3f4f6;
+                color: #374151;
+                border: 1px solid #d1d5db;
+                border-radius: 7px;
+                padding: 7px 16px;
+                font-weight: bold;
+            }
+
+            QPushButton:hover {
+                background-color: #e5e7eb;
+            }
+        """)
 
         botao_excluir = QPushButton("Excluir frete")
-
         botao_excluir.setMinimumWidth(140)
+        botao_excluir.setMinimumHeight(34)
+        botao_excluir.setStyleSheet("""
+            QPushButton {
+                background-color: #fee2e2;
+                color: #b91c1c;
+                border: 1px solid #fecaca;
+                border-radius: 7px;
+                padding: 7px 16px;
+                font-weight: bold;
+            }
+
+            QPushButton:hover {
+                background-color: #fecaca;
+            }
+        """)
 
         botao_excluir.clicked.connect(self.excluir_frete)
 
@@ -308,6 +392,30 @@ class Fretes(QWidget):
         layout_aba_gestao.addWidget(caixa_lancamento)
 
         abas = QTabWidget()
+
+        abas.setDocumentMode(True)
+        abas.setUsesScrollButtons(False)
+        abas.setMinimumHeight(300)
+
+        abas.setStyleSheet("""
+            QTabBar::tab {
+                min-width: 180px;
+                min-height: 36px;
+                padding: 8px 20px;
+                font-weight: bold;
+            }
+
+            QTabBar::tab:selected {
+                background-color: white;
+                border-bottom: 2px solid #2563eb;
+            }
+
+            QTabWidget::pane {
+                border: 1px solid #dfe3e8;
+                border-radius: 8px;
+                background: white;
+            }
+        """)
 
         caixa_lancamento.setMaximumHeight(330)
 
@@ -368,6 +476,14 @@ class Fretes(QWidget):
         linha_filtros.addWidget(self.valor_valor_fretes_filtrados)
 
         layout_fretes.addLayout(linha_filtros)
+
+        linha_acoes = QHBoxLayout()
+        linha_acoes.addStretch()
+
+        linha_acoes.addWidget(botao_editar)
+        linha_acoes.addWidget(botao_excluir)
+
+        layout_fretes.addLayout(linha_acoes)
 
         # ==================================
         # FILTRO — PERÍODO
@@ -430,12 +546,13 @@ class Fretes(QWidget):
         self.tabela_fretes.setColumnWidth(3, 180)
         self.tabela_fretes.setColumnWidth(4, 180)
         self.tabela_fretes.setColumnWidth(5, 110)
-        self.tabela_fretes.setColumnWidth(6, 130)
-        self.tabela_fretes.setColumnWidth(7, 120)
-        self.tabela_fretes.setColumnWidth(8, 150)
-        self.tabela_fretes.setColumnWidth(9, 130)
-        self.tabela_fretes.setColumnWidth(10, 130)
-        self.tabela_fretes.setColumnWidth(11, 190)
+        self.tabela_fretes.setColumnWidth(6, 110)
+        self.tabela_fretes.setColumnWidth(7, 140)
+        self.tabela_fretes.setColumnWidth(8, 130)
+        self.tabela_fretes.setColumnWidth(9, 120)
+        self.tabela_fretes.setColumnWidth(10, 140)
+        self.tabela_fretes.setColumnWidth(11, 130)
+        self.tabela_fretes.setColumnWidth(12, 180)
 
         layout_fretes.addWidget(self.tabela_fretes)
 
@@ -758,6 +875,7 @@ class Fretes(QWidget):
         # ==================================
 
         self.carregar_fretes()
+        self.aplicar_filtros_fretes()
         self.carregar_comissoes()
         self.carregar_resumo()
         self.filtro_data_inicial.dateChanged.connect(self.carregar_resumo)

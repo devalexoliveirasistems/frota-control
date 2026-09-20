@@ -3,6 +3,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
     QGridLayout,
+    QGroupBox,
     QLabel,
     QPushButton,
     QLineEdit,
@@ -10,7 +11,7 @@ from PySide6.QtWidgets import (
     QDateEdit,
     QMessageBox,
 )
-from PySide6.QtCore import QDate
+from PySide6.QtCore import QDate, Qt
 
 from banco.sessao import SessionLocal
 from banco.modelos import Veiculo, Motorista
@@ -23,12 +24,14 @@ class EdicaoFrete(QDialog):
         self.frete = frete
 
         self.setWindowTitle("Editar Frete")
-        self.resize(900, 650)
-        self.setMinimumSize(850, 600)
+
+        self.resize(1000, 380)
+        self.setMinimumSize(950, 360)
 
         layout_principal = QVBoxLayout()
-        layout_principal.setContentsMargins(25, 20, 25, 20)
-        layout_principal.setSpacing(15)
+        layout_principal.setContentsMargins(25, 15, 25, 15)
+        layout_principal.setSpacing(10)
+        layout_principal.setAlignment(Qt.AlignTop)
 
         titulo = QLabel("Editar Frete")
         titulo.setStyleSheet("""
@@ -66,8 +69,6 @@ class EdicaoFrete(QDialog):
         grid_contrato.setColumnStretch(0, 1)
         grid_contrato.setColumnStretch(1, 1)
 
-        layout_principal.addLayout(grid_contrato)
-
         # ==================================
         # TRANSPORTADORA / PESO
         # ==================================
@@ -90,8 +91,6 @@ class EdicaoFrete(QDialog):
         grid_transportadora.setColumnStretch(0, 1)
         grid_transportadora.setColumnStretch(1, 1)
 
-        layout_principal.addLayout(grid_transportadora)
-
         # ==================================
         # EMBARQUE / DESTINO
         # ==================================
@@ -112,8 +111,6 @@ class EdicaoFrete(QDialog):
 
         grid_origem_destino.setColumnStretch(0, 1)
         grid_origem_destino.setColumnStretch(1, 1)
-
-        layout_principal.addLayout(grid_origem_destino)
 
         # ==================================
         # PLACA / MOTORISTA
@@ -191,43 +188,6 @@ class EdicaoFrete(QDialog):
         grid_veiculo.setColumnStretch(0, 1)
         grid_veiculo.setColumnStretch(1, 1)
 
-        layout_principal.addLayout(grid_veiculo)
-
-        # ==================================
-        # MOTORISTA
-        # ==================================
-
-        linha_motorista = QHBoxLayout()
-
-        self.campo_motorista = QComboBox()
-        self.campo_motorista.addItem(
-            "Selecione o motorista",
-            None,
-        )
-
-        sessao = SessionLocal()
-
-        try:
-            motoristas = (
-                sessao.query(Motorista)
-                .filter(Motorista.status == "Ativo")
-                .order_by(Motorista.nome.asc())
-                .all()
-            )
-
-            for motorista in motoristas:
-                self.campo_motorista.addItem(
-                    motorista.nome,
-                    motorista.id,
-                )
-        finally:
-            sessao.close()
-
-        linha_motorista.addWidget(QLabel("Motorista"))
-        linha_motorista.addWidget(self.campo_motorista)
-
-        layout_principal.addLayout(linha_motorista)
-
         # ==================================
         # VALORES
         # ==================================
@@ -265,8 +225,6 @@ class EdicaoFrete(QDialog):
         grid_valores.setColumnStretch(0, 1)
         grid_valores.setColumnStretch(1, 1)
 
-        layout_principal.addLayout(grid_valores)
-
         # ==================================
         # OBSERVAÇÃO
         # ==================================
@@ -281,8 +239,6 @@ class EdicaoFrete(QDialog):
 
         grid_observacao.addWidget(QLabel("Observação"), 0, 0)
         grid_observacao.addWidget(self.campo_observacao, 1, 0)
-
-        layout_principal.addLayout(grid_observacao)
 
         # ==================================
         # STATUS
@@ -312,7 +268,46 @@ class EdicaoFrete(QDialog):
         grid_status.addWidget(QLabel("Status"), 0, 0)
         grid_status.addWidget(self.campo_status, 1, 0)
 
-        layout_principal.addLayout(grid_status)
+        # ==================================
+        # CARDS DA EDIÇÃO
+        # ==================================
+
+        card_dados = QGroupBox("1. Dados da viagem")
+        layout_card_dados = QVBoxLayout()
+        layout_card_dados.setSpacing(10)
+
+        layout_card_dados.addLayout(grid_contrato)
+        layout_card_dados.addLayout(grid_veiculo)
+        layout_card_dados.addLayout(grid_observacao)
+
+        card_dados.setLayout(layout_card_dados)
+
+        card_carga = QGroupBox("2. Carga")
+        card_carga.setMinimumWidth(280)
+
+        layout_card_carga = QVBoxLayout()
+        layout_card_carga.setSpacing(10)
+        layout_card_carga.addLayout(grid_origem_destino)
+        layout_card_carga.addLayout(grid_transportadora)
+
+        card_carga.setLayout(layout_card_carga)
+
+        card_valores = QGroupBox("3. Valores")
+        layout_card_valores = QVBoxLayout()
+        layout_card_valores.setSpacing(10)
+        layout_card_valores.addLayout(grid_valores)
+        layout_card_valores.addLayout(grid_status)
+
+        card_valores.setLayout(layout_card_valores)
+
+        linha_cards = QHBoxLayout()
+        linha_cards.setSpacing(15)
+
+        linha_cards.addWidget(card_dados, 3)
+        linha_cards.addWidget(card_carga, 3)
+        linha_cards.addWidget(card_valores, 3)
+
+        layout_principal.addLayout(linha_cards)
 
         # ==================================
         # BOTÕES
@@ -326,11 +321,30 @@ class EdicaoFrete(QDialog):
 
         botao_salvar = QPushButton("Salvar alterações")
         botao_salvar.setMinimumWidth(160)
+        botao_salvar.setStyleSheet("""
+            QPushButton {
+                background-color: #2563eb;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 18px;
+                font-weight: bold;
+            }
+
+            QPushButton:hover {
+                background-color: #1d4ed8;
+            }
+        """)
 
         linha_botoes.addWidget(botao_cancelar)
         linha_botoes.addWidget(botao_salvar)
 
         layout_principal.addLayout(linha_botoes)
+
+        botao_cancelar.clicked.connect(self.reject)
+        botao_salvar.clicked.connect(self.salvar_alteracoes)
+
+        self.setLayout(layout_principal)
 
     def converter_valor(self, texto):
         texto = texto.strip()
