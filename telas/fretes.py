@@ -373,31 +373,6 @@ class Fretes(QWidget):
         # FILTRO — PERÍODO
         # ==================================
 
-        linha_datas = QHBoxLayout()
-        linha_datas.setSpacing(10)
-
-        linha_datas.addWidget(QLabel("Data inicial:"))
-
-        self.filtro_fretes_data_inicial = QDateEdit()
-        self.filtro_fretes_data_inicial.setCalendarPopup(True)
-        self.filtro_fretes_data_inicial.setDate(QDate.currentDate().addDays(-30))
-
-        linha_datas.addWidget(self.filtro_fretes_data_inicial)
-
-        linha_datas.addWidget(QLabel("Data final:"))
-
-        self.filtro_fretes_data_final = QDateEdit()
-        self.filtro_fretes_data_final.setCalendarPopup(True)
-        self.filtro_fretes_data_final.setDate(QDate.currentDate())
-        self.filtro_fretes_data_inicial.dateChanged.connect(self.aplicar_filtros_fretes)
-
-        self.filtro_fretes_data_final.dateChanged.connect(self.aplicar_filtros_fretes)
-
-        linha_datas.addWidget(self.filtro_fretes_data_final)
-
-        layout_fretes.addWidget(botao_editar)
-        layout_fretes.addWidget(botao_excluir)
-
         sessao = SessionLocal()
 
         try:
@@ -1189,10 +1164,10 @@ class Fretes(QWidget):
                         item,
                     )
 
-                self.tabela_fretes.item(5 and linha, 5).setData(
+                self.tabela_fretes.item(linha, 6).setData(
                     Qt.UserRole + 1, frete.veiculo_id
                 )
-                self.tabela_fretes.item(linha, 6).setData(
+                self.tabela_fretes.item(linha, 7).setData(
                     Qt.UserRole + 1, frete.motorista_id
                 )
 
@@ -1211,49 +1186,62 @@ class Fretes(QWidget):
         motorista_id = self.filtro_motorista.currentData()
         veiculo_id = self.filtro_placa.currentData()
 
-        for linha in range(self.tabela_fretes.rowCount()):
-            item_placa = self.tabela_fretes.item(linha, 5)
-            item_motorista = self.tabela_fretes.item(linha, 6)
+        data_inicial = self.filtro_fretes_data_inicial.date().toPython()
+        data_final = self.filtro_fretes_data_final.date().toPython()
 
-            if not item_placa or not item_motorista:
+        total_visiveis = 0
+        total_filtrado = Decimal("0")
+
+        for linha in range(self.tabela_fretes.rowCount()):
+            item_data = self.tabela_fretes.item(linha, 0)
+            item_placa = self.tabela_fretes.item(linha, 6)
+            item_motorista = self.tabela_fretes.item(linha, 7)
+            item_frete = self.tabela_fretes.item(linha, 8)
+
+            if not item_data or not item_placa or not item_motorista:
                 continue
 
             linha_veiculo_id = item_placa.data(Qt.UserRole + 1)
             linha_motorista_id = item_motorista.data(Qt.UserRole + 1)
 
-            mostrar = (motorista_id is None or linha_motorista_id == motorista_id) and (
-                veiculo_id is None or linha_veiculo_id == veiculo_id
+            data_linha = QDate.fromString(
+                item_data.text(),
+                "dd/MM/yyyy",
+            ).toPython()
+
+            mostrar = (
+                (motorista_id is None or linha_motorista_id == motorista_id)
+                and (veiculo_id is None or linha_veiculo_id == veiculo_id)
+                and (data_inicial <= data_linha <= data_final)
             )
 
-            self.tabela_fretes.setRowHidden(linha, not mostrar)
-
-            total_visiveis = sum(
-                not self.tabela_fretes.isRowHidden(linha)
-                for linha in range(self.tabela_fretes.rowCount())
+            self.tabela_fretes.setRowHidden(
+                linha,
+                not mostrar,
             )
 
-            self.valor_fretes_filtrados.setText(f"Fretes: {total_visiveis}")
+            if mostrar:
+                total_visiveis += 1
 
-            total_filtrado = Decimal("0")
+                if item_frete:
+                    valor = (
+                        item_frete.text()
+                        .replace("R$", "")
+                        .replace(".", "")
+                        .replace(",", ".")
+                        .strip()
+                    )
 
-            for linha in range(self.tabela_fretes.rowCount()):
-                if not self.tabela_fretes.isRowHidden(linha):
-                    item_frete = self.tabela_fretes.item(linha, 7)
-
-                    if item_frete:
-                        valor = (
-                            item_frete.text()
-                            .replace("R$", "")
-                            .replace(".", "")
-                            .replace(",", ".")
-                            .strip()
-                        )
-
+                    try:
                         total_filtrado += Decimal(valor)
+                    except Exception:
+                        pass
 
-            self.valor_valor_fretes_filtrados.setText(
-                f"Total: {self.formatar_moeda(total_filtrado)}"
-            )
+        self.valor_fretes_filtrados.setText(f"Fretes: {total_visiveis}")
+
+        self.valor_valor_fretes_filtrados.setText(
+            f"Total: {self.formatar_moeda(total_filtrado)}"
+        )
 
     def limpar_filtro_resumo(self):
         self.filtro_data_inicial.setDate(QDate.currentDate().addDays(-30))
