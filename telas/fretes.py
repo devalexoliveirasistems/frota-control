@@ -68,33 +68,36 @@ class Fretes(QWidget):
 
         titulo = QLabel("Fretes")
         titulo.setStyleSheet("""
-            font-size: 24px;
+            font-size: 28px;
             font-weight: bold;
-            """)
-
+            color: #0f172a;
+            padding: 0 0 2px 10px;
+            border-left: 5px solid #2563eb;
+        """)
         layout_principal.addWidget(titulo)
 
         # ==================================
         # CAIXA DE LANÇAMENTO
         # ==================================
 
-        caixa_lancamento = QGroupBox("Lançamento do Frete")
+        titulo_lancamento = QLabel("Lançamento do Frete")
+        titulo_lancamento.setStyleSheet("""
+            font-size: 20px;
+            font-weight: bold;
+            color: #1f2937;
+            padding: 4px 0 8px 10px;
+            border-left: 4px solid #60a5fa;
+        """)
+
+        layout_principal.addWidget(titulo_lancamento)
+
+        caixa_lancamento = QGroupBox()
         caixa_lancamento.setStyleSheet("""
             QGroupBox {
                 border: 1px solid #d9dee7;
                 border-radius: 10px;
-                margin-top: 12px;
                 padding: 14px;
                 background-color: #ffffff;
-            }
-
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 12px;
-                padding: 0 6px;
-                color: #111827;
-                font-size: 15px;
-                font-weight: bold;
             }
         """)
         layout_lancamento = QVBoxLayout()
@@ -204,45 +207,58 @@ class Fretes(QWidget):
         # ==================================
         # CARD 1 — DADOS DA VIAGEM
         # ==================================
-        card_dados = QGroupBox("1. Dados da viagem")
+        card_dados = QGroupBox()
         card_dados.setObjectName("cardDados")
 
         layout_dados = QGridLayout()
+        titulo_dados = QLabel("1. Dados da viagem")
+        titulo_dados.setStyleSheet("""
+            background-color: #eff6ff;
+            color: #1d4ed8;
+            padding: 10px 14px;
+            font-size: 17px;
+            font-weight: bold;
+            border: none;
+            border-bottom: 1px solid #dbeafe;
+        """)
+        titulo_dados.setFixedHeight(42)
+
+        layout_dados.addWidget(titulo_dados, 0, 0, 1, 2)
         layout_dados.setHorizontalSpacing(10)
         layout_dados.setVerticalSpacing(10)
 
         contrato = QVBoxLayout()
-        contrato.setSpacing(2)
+        contrato.setSpacing(4)
         contrato.addWidget(QLabel("N° Contrato"))
         contrato.addWidget(self.campo_os)
 
         data = QVBoxLayout()
-        data.setSpacing(2)
+        data.setSpacing(4)
         data.addWidget(QLabel("Data"))
         data.addWidget(self.campo_dia)
 
         placa = QVBoxLayout()
-        placa.setSpacing(2)
+        placa.setSpacing(4)
         placa.addWidget(QLabel("Placa"))
         placa.addWidget(self.campo_placa)
 
         motorista = QVBoxLayout()
-        motorista.setSpacing(2)
+        motorista.setSpacing(4)
         motorista.addWidget(QLabel("Motorista"))
         motorista.addWidget(self.campo_motorista)
 
         observacao = QVBoxLayout()
-        observacao.setSpacing(2)
+        observacao.setSpacing(4)
         observacao.addWidget(QLabel("Observação"))
         observacao.addWidget(self.campo_observacao)
 
-        layout_dados.addLayout(contrato, 0, 0)
-        layout_dados.addLayout(data, 0, 1)
+        layout_dados.addLayout(contrato, 1, 0)
+        layout_dados.addLayout(data, 1, 1)
 
-        layout_dados.addLayout(placa, 1, 0)
-        layout_dados.addLayout(motorista, 1, 1)
+        layout_dados.addLayout(placa, 2, 0)
+        layout_dados.addLayout(motorista, 2, 1)
 
-        layout_dados.addLayout(observacao, 2, 0, 1, 2)
+        layout_dados.addLayout(observacao, 3, 0, 1, 2)
 
         layout_dados.setColumnStretch(0, 1)
         layout_dados.setColumnStretch(1, 1)
@@ -253,38 +269,51 @@ class Fretes(QWidget):
         # CARD 2 — CARGA
         # ==================================
 
-        card_carga = QGroupBox("2. Carga")
+        card_carga = QGroupBox()
         card_carga.setObjectName("cardCarga")
 
         layout_carga = QGridLayout()
+        titulo_carga = QLabel("2. Carga")
+        titulo_carga.setStyleSheet("""
+            background-color: #f0fdf4;
+            color: #15803d;
+            padding: 10px 14px;
+            font-size: 17px;
+            font-weight: bold;
+            border: none;
+            border-bottom: 1px solid #dcfce7;
+        """)
+        titulo_carga.setFixedHeight(42)
+
+        layout_carga.addWidget(titulo_carga, 0, 0, 1, 2)
         layout_carga.setHorizontalSpacing(10)
         layout_carga.setVerticalSpacing(10)
 
         origem = QVBoxLayout()
-        origem.setSpacing(2)
+        origem.setSpacing(4)
         origem.addWidget(QLabel("Origem"))
         origem.addWidget(self.campo_embarque)
 
         destino = QVBoxLayout()
-        destino.setSpacing(2)
+        destino.setSpacing(4)
         destino.addWidget(QLabel("Destino"))
         destino.addWidget(self.campo_destino)
 
         transportadora = QVBoxLayout()
-        transportadora.setSpacing(2)
+        transportadora.setSpacing(4)
         transportadora.addWidget(QLabel("Transportadora"))
         transportadora.addWidget(self.campo_transportadora)
 
         peso = QVBoxLayout()
-        peso.setSpacing(2)
+        peso.setSpacing(4)
         peso.addWidget(QLabel("Peso da carga (kg)"))
         peso.addWidget(self.campo_peso)
 
-        layout_carga.addLayout(origem, 0, 0)
-        layout_carga.addLayout(destino, 0, 1)
+        layout_carga.addLayout(origem, 1, 0)
+        layout_carga.addLayout(destino, 1, 1)
 
-        layout_carga.addLayout(transportadora, 1, 0)
-        layout_carga.addLayout(peso, 1, 1)
+        layout_carga.addLayout(transportadora, 2, 0)
+        layout_carga.addLayout(peso, 2, 1)
 
         layout_carga.setColumnStretch(0, 1)
         layout_carga.setColumnStretch(1, 1)
@@ -295,46 +324,58 @@ class Fretes(QWidget):
         # CARD 3 — VALORES
         # ==================================
 
-        card_valores = QGroupBox("3. Valores")
+        card_valores = QGroupBox()
         card_valores.setObjectName("cardValores")
 
         layout_valores = QGridLayout()
+        titulo_valores = QLabel("3. Valores")
+        titulo_valores.setStyleSheet("""
+            background-color: #fff7ed;
+            color: #c2410c;
+            padding: 10px 14px;
+            font-size: 17px;
+            font-weight: bold;
+            border: none;
+            border-bottom: 1px solid #fed7aa;
+        """)
+        titulo_valores.setFixedHeight(42)
+
+        layout_valores.addWidget(titulo_valores, 0, 0, 1, 2)
         layout_valores.setHorizontalSpacing(10)
         layout_valores.setVerticalSpacing(10)
 
         frete = QVBoxLayout()
-        frete.setSpacing(2)
+        frete.setSpacing(4)
         frete.addWidget(QLabel("Frete"))
         frete.addWidget(self.campo_frete)
 
         pedagio = QVBoxLayout()
-        pedagio.setSpacing(2)
+        pedagio.setSpacing(4)
         pedagio.addWidget(QLabel("Pedágio"))
         pedagio.addWidget(self.campo_pedagio)
 
         adiantamento = QVBoxLayout()
-        adiantamento.setSpacing(2)
+        adiantamento.setSpacing(4)
         adiantamento.addWidget(QLabel("Adiantamento"))
         adiantamento.addWidget(self.campo_adiantamento)
 
         saldo = QVBoxLayout()
-        saldo.setSpacing(2)
+        saldo.setSpacing(4)
         saldo.addWidget(QLabel("Saldo"))
         saldo.addWidget(self.campo_saldo)
 
         status = QVBoxLayout()
-        status.setSpacing(2)
+        status.setSpacing(4)
         status.addWidget(QLabel("Status"))
         status.addWidget(self.campo_status)
 
-        layout_valores.addLayout(frete, 0, 0)
-        layout_valores.addLayout(pedagio, 0, 1)
+        layout_valores.addLayout(frete, 1, 0)
+        layout_valores.addLayout(pedagio, 1, 1)
 
-        layout_valores.addLayout(adiantamento, 1, 0)
-        layout_valores.addLayout(saldo, 1, 1)
+        layout_valores.addLayout(adiantamento, 2, 0)
+        layout_valores.addLayout(saldo, 2, 1)
 
-        layout_valores.addLayout(status, 2, 0, 1, 2)
-
+        layout_valores.addLayout(status, 3, 0, 1, 2)
         layout_valores.setColumnStretch(0, 1)
         layout_valores.setColumnStretch(1, 1)
 
@@ -350,23 +391,35 @@ class Fretes(QWidget):
         for card in (card_dados, card_carga, card_valores):
             card.setStyleSheet("""
                 QGroupBox {
-                    background-color: #ffffff;
-                    border: 1px solid #d9dee7;
-                    border-radius: 10px;
+                    background-color: #f8fafc;
+                    border: 1px solid #dbe2ea;
+                    border-radius: 12px;
                     margin-top: 8px;
-                    padding: 18px 10px 10px 10px;
+                    padding: 20px 12px 12px 12px;
                     font-weight: bold;
                     color: #1f2937;
                 }
 
+                QGroupBox:hover {
+                    background-color: #ffffff;
+                    border: 1px solid #93c5fd;
+                }
+
                 QGroupBox::title {
-                    subcontrol-origin: padding;
-                    subcontrol-position: top left;
-                    left: 10px;
-                    top: 6px;
-                    padding: 4px 10px;
-                    border-radius: 6px;
-                    font-weight: bold;
+                subcontrol-origin: padding;
+                subcontrol-position: top left;
+                left: 12px;
+                top: 5px;
+                padding: 5px 12px;
+                border-radius: 7px;
+                font-size: 13px;
+                font-weight: bold;
+            }
+
+                QGroupBox QLabel {
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #374151;
                 }
 
                 QLineEdit,
@@ -376,8 +429,8 @@ class Fretes(QWidget):
                     border: 1px solid #d1d5db;
                     border-radius: 7px;
                     padding: 2px 8px;
-                    min-height: 24px;
-                    max-height: 30px;
+                    min-height: 28px;
+                    max-height: 34px;
                     color: #374151;
                 }
 
@@ -387,8 +440,14 @@ class Fretes(QWidget):
                     border: 1px solid #2563eb;
                 }
 
+                QLineEdit:hover,
+                QComboBox:hover,
+                QDateEdit:hover {
+                    border: 1px solid #9ca3af;
+                }
+
                 QLineEdit::placeholder {
-                    color: #9ca3af;
+                    color: rgba(107, 114, 128, 140);
                 }
 
                 QGroupBox#cardDados::title {
@@ -506,8 +565,7 @@ class Fretes(QWidget):
 
         abas.setDocumentMode(True)
         abas.setUsesScrollButtons(False)
-        abas.setMinimumHeight(300)
-
+        abas.setMinimumHeight(0)
         abas.setStyleSheet("""
             QTabBar::tab {
                 min-width: 130px;
