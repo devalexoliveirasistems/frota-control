@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QTabWidget,
     QSizePolicy,
+    QFrame,
 )
 
 from PySide6.QtCore import QDate, Qt
@@ -432,7 +433,11 @@ class Fretes(QWidget):
                     min-height: 28px;
                     max-height: 34px;
                     color: #374151;
+                    font-size: 15px;
+                    font-weight: 500;
                 }
+
+
 
                 QLineEdit:focus,
                 QComboBox:focus,
@@ -480,6 +485,172 @@ class Fretes(QWidget):
 
         layout_lancamento.addLayout(linha_cards)
         layout_lancamento.setStretch(0, 1)
+
+        # ==================================
+        # PRÉVIA DO FRETE
+        # ==================================
+
+        caixa_previa = QGroupBox()
+        caixa_previa.setStyleSheet("""
+            QGroupBox {
+                background-color: #f8fafc;
+                border: 1px solid #dbe2ea;
+                border-radius: 12px;
+                padding: 10px;
+            }
+        """)
+
+        layout_previa = QVBoxLayout()
+        layout_previa.setSpacing(8)
+        layout_previa.setContentsMargins(10, 8, 10, 8)
+
+        titulo_previa = QLabel("Prévia do Frete")
+        titulo_previa.setStyleSheet("""
+            background-color: #eff6ff;
+            color: #1d4ed8;
+            padding: 7px 12px;
+            font-size: 15px;
+            font-weight: bold;
+            border-bottom: 1px solid #dbeafe;
+        """)
+
+        layout_previa.addWidget(titulo_previa)
+
+        linha_info_previa = QHBoxLayout()
+        linha_info_previa.setSpacing(24)
+
+        rota_previa = QLabel("Origem → Destino")
+        rota_previa.setStyleSheet("""
+            font-size: 16px;
+            font-weight: bold;
+            color: #1f2937;
+        """)
+
+        detalhes_previa = QLabel("Placa | Motorista | Peso")
+        detalhes_previa.setStyleSheet("""
+            font-size: 15px;
+            font-weight: 600;
+            color: #374151;
+        """)
+
+        status_previa = QLabel("Aguardando preenchimento")
+        status_previa.setStyleSheet("""
+            font-size: 14px;
+            font-weight: 600;
+            color: #6b7280;
+        """)
+
+        linha_info_previa.addWidget(rota_previa, 2)
+        linha_info_previa.addWidget(detalhes_previa, 2)
+        linha_info_previa.addWidget(status_previa, 1)
+
+        layout_previa.addLayout(linha_info_previa)
+
+        linha_valores_previa = QHBoxLayout()
+        linha_valores_previa.setSpacing(10)
+
+        def criar_indicador_previa(titulo, valor, cor):
+            frame = QFrame()
+            frame.setStyleSheet(f"""
+                QFrame {{
+                    background-color: #ffffff;
+                    border: 1px solid #e5e7eb;
+                    border-left: 3px solid {cor};
+                    border-radius: 8px;
+                }}
+            """)
+
+            layout = QVBoxLayout(frame)
+            layout.setContentsMargins(10, 6, 10, 6)
+            layout.setSpacing(2)
+
+            label_titulo = QLabel(titulo)
+            label_titulo.setStyleSheet("""
+                font-size: 12px;
+                color: #6b7280;
+                border: none;
+            """)
+
+            label_valor = QLabel(valor)
+            label_valor.setStyleSheet("""
+                font-size: 15px;
+                font-weight: bold;
+                color: #1f2937;
+                border: none;
+            """)
+
+            layout.addWidget(label_titulo)
+            layout.addWidget(label_valor)
+
+            return frame, label_valor
+
+        card_frete_previa, valor_frete_previa = criar_indicador_previa(
+            "Frete", "R$ 0,00", "#2563eb"
+        )
+
+        card_pedagio_previa, valor_pedagio_previa = criar_indicador_previa(
+            "Pedágio", "R$ 0,00", "#f59e0b"
+        )
+
+        card_adiantamento_previa, valor_adiantamento_previa = criar_indicador_previa(
+            "Adiantamento", "R$ 0,00", "#10b981"
+        )
+
+        card_saldo_previa, valor_saldo_previa = criar_indicador_previa(
+            "Saldo", "R$ 0,00", "#7c3aed"
+        )
+
+        linha_valores_previa.addWidget(card_frete_previa)
+        linha_valores_previa.addWidget(card_pedagio_previa)
+        linha_valores_previa.addWidget(card_adiantamento_previa)
+        linha_valores_previa.addWidget(card_saldo_previa)
+
+        layout_previa.addLayout(linha_valores_previa)
+
+        def atualizar_previa():
+            origem = self.campo_embarque.text().strip()
+            destino = self.campo_destino.text().strip()
+
+            placa = self.campo_placa.currentText()
+            motorista = self.campo_motorista.currentText()
+            peso = self.campo_peso.text().strip()
+
+            rota_previa.setText(f"{origem or 'Origem'} → {destino or 'Destino'}")
+
+            detalhes_previa.setText(
+                f"{placa or 'Placa'} | {motorista or 'Motorista'} | "
+                f"{peso or 'Peso'}"
+            )
+
+            valor_frete_previa.setText(self.campo_frete.text().strip() or "R$ 0,00")
+
+            valor_pedagio_previa.setText(self.campo_pedagio.text().strip() or "R$ 0,00")
+
+            valor_adiantamento_previa.setText(
+                self.campo_adiantamento.text().strip() or "R$ 0,00"
+            )
+
+            valor_saldo_previa.setText(self.campo_saldo.text().strip() or "R$ 0,00")
+
+            status_previa.setText(self.campo_status.currentText())
+
+        self.campo_embarque.textChanged.connect(atualizar_previa)
+        self.campo_destino.textChanged.connect(atualizar_previa)
+        self.campo_peso.textChanged.connect(atualizar_previa)
+
+        self.campo_placa.currentTextChanged.connect(atualizar_previa)
+        self.campo_motorista.currentTextChanged.connect(atualizar_previa)
+        self.campo_status.currentTextChanged.connect(atualizar_previa)
+
+        self.campo_frete.textChanged.connect(atualizar_previa)
+        self.campo_pedagio.textChanged.connect(atualizar_previa)
+        self.campo_adiantamento.textChanged.connect(atualizar_previa)
+        self.campo_saldo.textChanged.connect(atualizar_previa)
+
+        atualizar_previa()
+
+        caixa_previa.setLayout(layout_previa)
+        layout_lancamento.addWidget(caixa_previa)
 
         # ==================================
         # BOTÕES
@@ -559,8 +730,6 @@ class Fretes(QWidget):
         layout_aba_gestao.setContentsMargins(5, 5, 5, 5)
         layout_aba_gestao.setSpacing(10)
 
-        layout_aba_gestao.addWidget(caixa_lancamento)
-
         abas = QTabWidget()
 
         abas.setDocumentMode(True)
@@ -586,7 +755,7 @@ class Fretes(QWidget):
             }
         """)
 
-        caixa_lancamento.setMaximumHeight(400)
+        caixa_lancamento.setMaximumHeight(650)
 
         # ==================================
         # ABA — FRETES LANÇADOS
@@ -728,6 +897,14 @@ class Fretes(QWidget):
         caixa_fretes.setLayout(layout_fretes)
 
         layout_aba_fretes.addWidget(caixa_fretes)
+
+        aba_lancamento = QWidget()
+        layout_aba_lancamento = QVBoxLayout(aba_lancamento)
+        layout_aba_lancamento.setContentsMargins(0, 0, 0, 0)
+        layout_aba_lancamento.addWidget(caixa_lancamento)
+        layout_aba_lancamento.setAlignment(Qt.AlignTop)
+
+        abas.addTab(aba_lancamento, "Lançamento")
 
         abas.addTab(aba_fretes, "Fretes Lançados")
 
