@@ -106,6 +106,43 @@ class Fretes(QWidget):
         layout_lancamento.setContentsMargins(10, 0, 10, 0)
 
         # ==================================
+        # PADRÃO VISUAL DOS CAMPOS
+        # ==================================
+
+        estilo_campo = """
+            QLineEdit,
+            QComboBox,
+            QDateEdit {
+                min-height: 38px;
+                border: 1px solid #d9dee7;
+                border-radius: 7px;
+                padding: 6px 10px;
+                background-color: #ffffff;
+                color: #202124;
+                font-size: 13px;
+            }
+
+            QLineEdit:hover,
+            QComboBox:hover,
+            QDateEdit:hover {
+                border: 1px solid #aeb7c4;
+            }
+
+            QLineEdit:focus,
+            QComboBox:focus,
+            QDateEdit:focus {
+                border: 1px solid #2563eb;
+            }
+
+            QLineEdit:disabled,
+            QComboBox:disabled,
+            QDateEdit:disabled {
+                background-color: #f3f4f6;
+                color: #9ca3af;
+            }
+        """
+
+        # ==================================
         # CAMPOS DO FRETE
         # ==================================
 
@@ -120,7 +157,7 @@ class Fretes(QWidget):
         self.campo_transportadora.setPlaceholderText("Transportadora")
 
         self.campo_peso = QLineEdit()
-        self.campo_peso.setPlaceholderText("Peso da carga (kg)")
+        self.campo_peso.setPlaceholderText("0,00 kg")
 
         self.campo_embarque = QLineEdit()
         self.campo_embarque.setPlaceholderText("Local de embarque")
@@ -145,7 +182,7 @@ class Fretes(QWidget):
         self.carregar_placas()
 
         self.campo_frete = QLineEdit()
-        self.campo_frete.setPlaceholderText("Valor total do frete")
+        self.campo_frete.setPlaceholderText("R$ 0,00")
 
         self.campo_frete.editingFinished.connect(
             lambda: self.campo_frete.setText(
@@ -156,7 +193,7 @@ class Fretes(QWidget):
         self.campo_frete.editingFinished.connect(self.calcular_saldo)
 
         self.campo_pedagio = QLineEdit()
-        self.campo_pedagio.setPlaceholderText("Valor do pedágio")
+        self.campo_pedagio.setPlaceholderText("R$ 0,00")
 
         self.campo_pedagio.editingFinished.connect(
             lambda: self.campo_pedagio.setText(
@@ -165,7 +202,7 @@ class Fretes(QWidget):
         )
 
         self.campo_adiantamento = QLineEdit()
-        self.campo_adiantamento.setPlaceholderText("Valor do adiantamento")
+        self.campo_adiantamento.setPlaceholderText("R$ 0,00")
 
         self.campo_adiantamento.editingFinished.connect(
             lambda: self.campo_adiantamento.setText(
@@ -176,7 +213,8 @@ class Fretes(QWidget):
         self.campo_adiantamento.editingFinished.connect(self.calcular_saldo)
 
         self.campo_saldo = QLineEdit()
-        self.campo_saldo.setPlaceholderText("Saldo recebido após descarga")
+        self.campo_saldo.setPlaceholderText("R$ 0,00")
+
         self.campo_saldo.setReadOnly(True)
 
         self.campo_saldo.editingFinished.connect(
@@ -205,6 +243,40 @@ class Fretes(QWidget):
         self.campo_observacao = QLineEdit()
         self.campo_observacao.setPlaceholderText("Observação")
 
+        # Aplicar padrão visual aos campos
+        for campo in [
+            self.campo_os,
+            self.campo_transportadora,
+            self.campo_peso,
+            self.campo_embarque,
+            self.campo_destino,
+            self.campo_placa,
+            self.campo_motorista,
+            self.campo_frete,
+            self.campo_pedagio,
+            self.campo_adiantamento,
+            self.campo_saldo,
+            self.campo_status,
+            self.campo_observacao,
+        ]:
+            campo.setStyleSheet(estilo_campo)
+
+        self.campo_dia.setStyleSheet(estilo_campo)
+
+        # Ordem de navegação pelo formulário
+        self.setTabOrder(self.campo_os, self.campo_dia)
+        self.setTabOrder(self.campo_dia, self.campo_placa)
+        self.setTabOrder(self.campo_placa, self.campo_motorista)
+        self.setTabOrder(self.campo_motorista, self.campo_observacao)
+        self.setTabOrder(self.campo_observacao, self.campo_embarque)
+        self.setTabOrder(self.campo_embarque, self.campo_destino)
+        self.setTabOrder(self.campo_destino, self.campo_transportadora)
+        self.setTabOrder(self.campo_transportadora, self.campo_peso)
+        self.setTabOrder(self.campo_peso, self.campo_frete)
+        self.setTabOrder(self.campo_frete, self.campo_pedagio)
+        self.setTabOrder(self.campo_pedagio, self.campo_adiantamento)
+        self.setTabOrder(self.campo_adiantamento, self.campo_status)
+
         # ==================================
         # CARD 1 — DADOS DA VIAGEM
         # ==================================
@@ -216,13 +288,14 @@ class Fretes(QWidget):
         titulo_dados.setStyleSheet("""
             background-color: #eff6ff;
             color: #1d4ed8;
-            padding: 10px 14px;
+            padding: 6px 14px;
             font-size: 17px;
             font-weight: bold;
             border: none;
             border-bottom: 1px solid #dbeafe;
         """)
-        titulo_dados.setFixedHeight(42)
+        titulo_dados.setFixedHeight(46)
+        titulo_dados.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
 
         layout_dados.addWidget(titulo_dados, 0, 0, 1, 2)
         layout_dados.setHorizontalSpacing(10)
@@ -278,13 +351,14 @@ class Fretes(QWidget):
         titulo_carga.setStyleSheet("""
             background-color: #f0fdf4;
             color: #15803d;
-            padding: 10px 14px;
+            padding: 6px 14px;
             font-size: 17px;
             font-weight: bold;
             border: none;
             border-bottom: 1px solid #dcfce7;
         """)
-        titulo_carga.setFixedHeight(42)
+        titulo_carga.setFixedHeight(46)
+        titulo_carga.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
 
         layout_carga.addWidget(titulo_carga, 0, 0, 1, 2)
         layout_carga.setHorizontalSpacing(10)
@@ -333,13 +407,15 @@ class Fretes(QWidget):
         titulo_valores.setStyleSheet("""
             background-color: #fff7ed;
             color: #c2410c;
-            padding: 10px 14px;
+            padding: 6px 14px;
             font-size: 17px;
             font-weight: bold;
             border: none;
             border-bottom: 1px solid #fed7aa;
         """)
-        titulo_valores.setFixedHeight(42)
+
+        titulo_valores.setFixedHeight(46)
+        titulo_valores.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
 
         layout_valores.addWidget(titulo_valores, 0, 0, 1, 2)
         layout_valores.setHorizontalSpacing(10)
@@ -377,6 +453,11 @@ class Fretes(QWidget):
         layout_valores.addLayout(saldo, 2, 1)
 
         layout_valores.addLayout(status, 3, 0, 1, 2)
+
+        layout_valores.setRowStretch(1, 1)
+        layout_valores.setRowStretch(2, 1)
+        layout_valores.setRowStretch(3, 1)
+
         layout_valores.setColumnStretch(0, 1)
         layout_valores.setColumnStretch(1, 1)
 
@@ -385,25 +466,29 @@ class Fretes(QWidget):
         card_carga.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         card_valores.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        card_dados.setMinimumHeight(300)
-        card_carga.setMinimumHeight(300)
-        card_valores.setMinimumHeight(300)
+        card_dados.setMinimumHeight(240)
+        card_carga.setMinimumHeight(240)
+        card_valores.setMinimumHeight(240)
+
+        card_dados.setMaximumHeight(330)
+        card_carga.setMaximumHeight(330)
+        card_valores.setMaximumHeight(330)
 
         for card in (card_dados, card_carga, card_valores):
             card.setStyleSheet("""
                 QGroupBox {
-                    background-color: #f8fafc;
-                    border: 1px solid #dbe2ea;
-                    border-radius: 12px;
+                    background-color: #ffffff;
+                    border: 1px solid #e1e5eb;
+                    border-radius: 14px;
                     margin-top: 8px;
-                    padding: 20px 12px 12px 12px;
+                    padding: 12px 14px 12px 14px;
                     font-weight: bold;
-                    color: #1f2937;
+                    color: #202124;
                 }
 
                 QGroupBox:hover {
                     background-color: #ffffff;
-                    border: 1px solid #93c5fd;
+                    border: 1px solid #cbd5e1;
                 }
 
                 QGroupBox::title {
@@ -427,16 +512,15 @@ class Fretes(QWidget):
                 QComboBox,
                 QDateEdit {
                     background-color: #ffffff;
-                    border: 1px solid #d1d5db;
+                    border: 1px solid #d9dee7;
                     border-radius: 7px;
-                    padding: 2px 8px;
-                    min-height: 28px;
-                    max-height: 34px;
-                    color: #374151;
-                    font-size: 15px;
+                    padding: 5px 10px;
+                    min-height: 36px;
+                    max-height: 38px;
+                    color: #202124;
+                    font-size: 13px;
                     font-weight: 500;
                 }
-
 
 
                 QLineEdit:focus,
@@ -476,11 +560,12 @@ class Fretes(QWidget):
         # ==================================
 
         linha_cards = QHBoxLayout()
-        linha_cards.setSpacing(12)
+        linha_cards.setSpacing(16)
+
         linha_cards.setContentsMargins(0, 0, 0, 0)
 
         linha_cards.addWidget(card_dados, 3)
-        linha_cards.addWidget(card_carga, 4)
+        linha_cards.addWidget(card_carga, 3)
         linha_cards.addWidget(card_valores, 3)
 
         layout_lancamento.addLayout(linha_cards)
@@ -658,6 +743,29 @@ class Fretes(QWidget):
 
         linha_botao = QHBoxLayout()
         linha_botao.addStretch()
+
+        botao_limpar = QPushButton("Limpar")
+        botao_limpar.setMinimumWidth(110)
+        botao_limpar.setMinimumHeight(34)
+
+        botao_limpar.setStyleSheet("""
+            QPushButton {
+                background-color: #f3f4f6;
+                color: #374151;
+                border: 1px solid #d1d5db;
+                border-radius: 7px;
+                padding: 7px 16px;
+                font-weight: bold;
+            }
+
+            QPushButton:hover {
+                background-color: #e5e7eb;
+            }
+        """)
+
+        botao_limpar.clicked.connect(self.limpar_lancamento)
+
+        linha_botao.addWidget(botao_limpar)
 
         botao_lancar = QPushButton("Lançar frete")
         botao_lancar.setMinimumWidth(140)
@@ -869,6 +977,10 @@ class Fretes(QWidget):
         self.tabela_fretes.setAlternatingRowColors(True)
 
         self.tabela_fretes.setSelectionBehavior(QTableWidget.SelectRows)
+
+        self.tabela_fretes.cellDoubleClicked.connect(
+            lambda linha, coluna: self.editar_frete()
+        )
 
         self.tabela_fretes.setSelectionMode(QTableWidget.SingleSelection)
 
@@ -1360,8 +1472,10 @@ class Fretes(QWidget):
                     QMessageBox.warning(
                         self,
                         "Peso inválido",
-                        "Informe um peso maior que zero.",
+                        "O peso informado precisa ser maior que zero.\n\n"
+                        "Informe o peso da carga em quilogramas.",
                     )
+                    self.campo_peso.setFocus()
                     return
 
             veiculo_id = self.campo_placa.currentData()
@@ -1376,8 +1490,10 @@ class Fretes(QWidget):
                 QMessageBox.warning(
                     self,
                     "Valor inválido",
-                    "O pedágio não pode ser maior que o valor do frete.",
+                    "O valor do pedágio não pode ser maior que o valor do frete.\n\n"
+                    "Confira os valores informados antes de continuar.",
                 )
+                self.campo_pedagio.setFocus()
                 return
 
             adiantamento = self.converter_valor(self.campo_adiantamento.text())
@@ -1386,8 +1502,10 @@ class Fretes(QWidget):
                 QMessageBox.warning(
                     self,
                     "Valor inválido",
-                    "O adiantamento não pode ser maior que o valor do frete.",
+                    "O valor do adiantamento não pode ser maior que o valor do frete.\n\n"
+                    "Confira os valores informados antes de continuar.",
                 )
+                self.campo_adiantamento.setFocus()
                 return
 
             saldo = valor_frete - adiantamento
@@ -1398,62 +1516,77 @@ class Fretes(QWidget):
             if not ordem_servico:
                 QMessageBox.warning(
                     self,
-                    "Campo obrigatório",
-                    "Informe o número da OS.",
+                    "Preenchimento necessário",
+                    "O número do contrato não foi informado.\n\n"
+                    "Informe o número do contrato para continuar.",
                 )
+                self.campo_os.setFocus()
                 return
 
             if not transportadora:
                 QMessageBox.warning(
                     self,
-                    "Campo obrigatório",
-                    "Informe a transportadora.",
+                    "Preenchimento necessário",
+                    "A transportadora não foi informada.\n\n"
+                    "Informe a transportadora para continuar.",
                 )
+                self.campo_transportadora.setFocus()
                 return
 
             if not embarque:
                 QMessageBox.warning(
                     self,
-                    "Campo obrigatório",
-                    "Informe o local de embarque.",
+                    "Preenchimento necessário",
+                    "O local de embarque não foi informado.\n\n"
+                    "Informe a origem da carga para continuar.",
                 )
+                self.campo_embarque.setFocus()
                 return
 
             if not destino:
                 QMessageBox.warning(
                     self,
-                    "Campo obrigatório",
-                    "Informe o local de destino.",
+                    "Preenchimento necessário",
+                    "O local de destino não foi informado.\n\n"
+                    "Informe o destino da carga para continuar.",
                 )
+                self.campo_destino.setFocus()
                 return
 
             if veiculo_id is None:
                 QMessageBox.warning(
                     self,
-                    "Campo obrigatório",
-                    "Selecione a placa do caminhão.",
+                    "Preenchimento necessário",
+                    "Nenhum caminhão foi selecionado.\n\n"
+                    "Selecione a placa do caminhão para continuar.",
                 )
+                self.campo_placa.setFocus()
                 return
 
             if motorista_id is None:
                 QMessageBox.warning(
                     self,
-                    "Campo obrigatório",
-                    "Selecione o motorista.",
+                    "Preenchimento necessário",
+                    "Nenhum motorista foi selecionado.\n\n"
+                    "Selecione o motorista para continuar.",
                 )
+                self.campo_motorista.setFocus()
                 return
 
             if valor_frete <= 0:
                 QMessageBox.warning(
                     self,
-                    "Valor inválido",
-                    "Informe um valor de frete maior que zero.",
+                    "Valor do frete inválido",
+                    "O valor do frete não foi informado ou é igual a zero.\n\n"
+                    "Informe um valor de frete maior que zero para continuar.",
                 )
+                self.campo_frete.setFocus()
                 return
 
             confirmacao = QMessageBox.question(
                 self,
                 "Confirmar lançamento",
+                "Confira os dados do frete antes de continuar.\n\n"
                 "Deseja realmente lançar este frete?",
                 QMessageBox.Yes | QMessageBox.No,
                 QMessageBox.No,
@@ -1509,14 +1642,15 @@ class Fretes(QWidget):
             QMessageBox.warning(
                 self,
                 "Valor inválido",
-                "Confira os valores de frete, pedágio, adiantamento e saldo.",
+                "Não foi possível interpretar um dos valores informados.\n\n"
+                "Confira os campos de frete, pedágio, adiantamento e peso.",
             )
 
         except Exception as erro:
             QMessageBox.critical(
                 self,
                 "Erro ao lançar frete",
-                f"Não foi possível lançar o frete:\n\n{erro}",
+                f"Não foi possível lançar o frete.\n\n{erro}",
             )
 
     # ======================================
@@ -1920,6 +2054,18 @@ class Fretes(QWidget):
     # ======================================
 
     def limpar_lancamento(self):
+        confirmacao = QMessageBox.question(
+            self,
+            "Limpar lançamento",
+            "Deseja realmente limpar os dados preenchidos?\n\n"
+            "Todos os dados deste lançamento serão apagados.",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+
+        if confirmacao == QMessageBox.No:
+            return
+
         self.campo_os.clear()
         self.campo_transportadora.clear()
         self.campo_embarque.clear()
