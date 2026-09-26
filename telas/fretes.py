@@ -226,19 +226,17 @@ class Fretes(QWidget):
         self.campo_status = QComboBox()
         self.campo_status.addItems(
             [
-                "Pendente",
-                "Aguardando carregamento",
-                "Carregado",
-                "Em viagem",
-                "Aguardando descarga",
-                "Descarregado",
+                "Aguardando adiantamento",
                 "Aguardando saldo",
-                "Frete quitado",
-                "Cancelado",
+                "Concluído",
             ]
         )
 
         self.campo_status.setCurrentText("Aguardando saldo")
+
+        self.campo_status.currentTextChanged.connect(self.atualizar_cor_status)
+
+        self.atualizar_cor_status(self.campo_status.currentText())
 
         self.campo_observacao = QLineEdit()
         self.campo_observacao.setPlaceholderText("Observação")
@@ -286,13 +284,13 @@ class Fretes(QWidget):
         layout_dados = QGridLayout()
         titulo_dados = QLabel("1. Dados da viagem")
         titulo_dados.setStyleSheet("""
-            background-color: #eff6ff;
+            background-color: #f8fafc;
             color: #1d4ed8;
             padding: 6px 14px;
-            font-size: 17px;
-            font-weight: bold;
+            font-size: 16px;
+            font-weight: 700;
             border: none;
-            border-bottom: 1px solid #dbeafe;
+            border-bottom: 1px solid #e2e8f0;
         """)
         titulo_dados.setFixedHeight(46)
         titulo_dados.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
@@ -349,13 +347,13 @@ class Fretes(QWidget):
         layout_carga = QGridLayout()
         titulo_carga = QLabel("2. Carga")
         titulo_carga.setStyleSheet("""
-            background-color: #f0fdf4;
-            color: #15803d;
+            background-color: #ecfeff;
+            color: #0f766e;
             padding: 6px 14px;
             font-size: 17px;
             font-weight: bold;
             border: none;
-            border-bottom: 1px solid #dcfce7;
+            border-bottom: 1px solid #ccfbf1;
         """)
         titulo_carga.setFixedHeight(46)
         titulo_carga.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
@@ -405,13 +403,13 @@ class Fretes(QWidget):
         layout_valores = QGridLayout()
         titulo_valores = QLabel("3. Valores")
         titulo_valores.setStyleSheet("""
-            background-color: #fff7ed;
-            color: #c2410c;
+            background-color: #f0fdf4;
+            color: #15803d;
             padding: 6px 14px;
             font-size: 17px;
             font-weight: bold;
             border: none;
-            border-bottom: 1px solid #fed7aa;
+            border-bottom: 1px solid #dcfce7;
         """)
 
         titulo_valores.setFixedHeight(46)
@@ -503,8 +501,8 @@ class Fretes(QWidget):
             }
 
                 QGroupBox QLabel {
-                    font-size: 14px;
-                    font-weight: 600;
+                    font-size: 13.5px;
+                    font-weight: 700;
                     color: #374151;
                 }
 
@@ -554,6 +552,8 @@ class Fretes(QWidget):
                     color: #c2410c;
                 }
             """)
+
+        self.atualizar_cor_status(self.campo_status.currentText())
 
         # ==================================
         # 3 CARDS DENTRO DO CARD MAIOR
@@ -618,11 +618,16 @@ class Fretes(QWidget):
             color: #374151;
         """)
 
-        status_previa = QLabel("Aguardando preenchimento")
+        status_previa = QLabel("Aguardando saldo")
+        status_previa.setAlignment(Qt.AlignCenter)
         status_previa.setStyleSheet("""
+            background-color: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+            border-radius: 7px;
+            padding: 6px 12px;
             font-size: 14px;
-            font-weight: 600;
-            color: #6b7280;
+            font-weight: 700;
         """)
 
         linha_info_previa.addWidget(rota_previa, 2)
@@ -719,6 +724,38 @@ class Fretes(QWidget):
 
             status_previa.setText(self.campo_status.currentText())
 
+            status = self.campo_status.currentText()
+
+            if status == "Aguardando adiantamento":
+                fundo = "#fff7ed"
+                texto = "#c2410c"
+                borda = "#fed7aa"
+
+            elif status == "Aguardando saldo":
+                fundo = "#eff6ff"
+                texto = "#1d4ed8"
+                borda = "#bfdbfe"
+
+            elif status == "Concluído":
+                fundo = "#f0fdf4"
+                texto = "#15803d"
+                borda = "#bbf7d0"
+
+            else:
+                fundo = "#ffffff"
+                texto = "#202124"
+                borda = "#d9dee7"
+
+            status_previa.setStyleSheet(f"""
+                background-color: {fundo};
+                color: {texto};
+                border: 1px solid {borda};
+                border-radius: 7px;
+                padding: 6px 12px;
+                font-size: 14px;
+                font-weight: 700;
+            """)
+
         self.campo_embarque.textChanged.connect(atualizar_previa)
         self.campo_destino.textChanged.connect(atualizar_previa)
         self.campo_peso.textChanged.connect(atualizar_previa)
@@ -745,43 +782,55 @@ class Fretes(QWidget):
         linha_botao.addStretch()
 
         botao_limpar = QPushButton("Limpar")
-        botao_limpar.setMinimumWidth(110)
-        botao_limpar.setMinimumHeight(34)
+        botao_limpar.setMinimumWidth(120)
+        botao_limpar.setMinimumHeight(38)
 
         botao_limpar.setStyleSheet("""
             QPushButton {
-                background-color: #f3f4f6;
-                color: #374151;
-                border: 1px solid #d1d5db;
-                border-radius: 7px;
-                padding: 7px 16px;
-                font-weight: bold;
+                background-color: #e5e7eb;
+                color: #1f2937;
+                border: 1px solid #c7cdd4;
+                border-radius: 8px;
+                padding: 7px 18px;
+                font-size: 14px;
+                font-weight: 700;
             }
 
             QPushButton:hover {
-                background-color: #e5e7eb;
+                background-color: #d1d5db;
+                color: #111827;
+                border-color: #9ca3af;
+            }
+
+            QPushButton:pressed {
+                background-color: #cbd5e1;
             }
         """)
-
         botao_limpar.clicked.connect(self.limpar_lancamento)
 
         linha_botao.addWidget(botao_limpar)
 
         botao_lancar = QPushButton("Lançar frete")
-        botao_lancar.setMinimumWidth(140)
-        botao_lancar.setMinimumHeight(36)
+        botao_lancar.setMinimumWidth(190)
+        botao_lancar.setMinimumHeight(42)
+
         botao_lancar.setStyleSheet("""
             QPushButton {
-                background-color: #2563eb;
-                color: white;
+                background-color: #1e40af;
+                color: #ffffff;
                 border: none;
-                border-radius: 7px;
-                padding: 8px 18px;
-                font-weight: bold;
+                border-radius: 8px;
+                padding: 8px 22px;
+                font-size: 15px;
+                font-weight: 700;
             }
 
             QPushButton:hover {
                 background-color: #1d4ed8;
+            }
+
+            QPushButton:pressed {
+                background-color: #1e3a8a;
             }
         """)
 
@@ -845,21 +894,36 @@ class Fretes(QWidget):
         abas.setMinimumHeight(0)
         abas.setStyleSheet("""
             QTabBar::tab {
-                min-width: 130px;
-                min-height: 30px;
-                padding: 5px 12px;
-                font-weight: bold;
+                min-width: 145px;
+                min-height: 40px;
+                padding: 7px 18px;
+                margin-right: 5px;
+                border: 1px solid #d9dee7;
+                border-bottom: none;
+                border-top-left-radius: 8px;
+                border-top-right-radius: 8px;
+                background-color: #f1f3f5;
+                color: #374151;
+                font-size: 15px;
+                font-weight: 700;
+            }
+
+            QTabBar::tab:hover {
+                background-color: #e5e7eb;
+                color: #1f2937;
             }
 
             QTabBar::tab:selected {
-                background-color: white;
-                border-bottom: 2px solid #2563eb;
+                background-color: #ffffff;
+                color: #1d4ed8;
+                border: 1px solid #d9dee7;
+                border-bottom: 3px solid #2563eb;
             }
 
             QTabWidget::pane {
-                border: 1px solid #dfe3e8;
-                border-radius: 8px;
-                background: white;
+                border: 1px solid #d9dee7;
+                border-radius: 0px 8px 8px 8px;
+                background-color: #ffffff;
             }
         """)
 
@@ -1445,6 +1509,49 @@ class Fretes(QWidget):
 
         except ValueError:
             self.campo_saldo.clear()
+
+    def atualizar_cor_status(self, status):
+        if status == "Aguardando adiantamento":
+            fundo = "#fff7ed"
+            texto = "#c2410c"
+            borda = "#fed7aa"
+
+        elif status == "Aguardando saldo":
+            fundo = "#eff6ff"
+            texto = "#1d4ed8"
+            borda = "#bfdbfe"
+
+        elif status == "Concluído":
+            fundo = "#f0fdf4"
+            texto = "#15803d"
+            borda = "#bbf7d0"
+
+        else:
+            fundo = "#ffffff"
+            texto = "#202124"
+            borda = "#d9dee7"
+
+        self.campo_status.setStyleSheet(f"""
+            QComboBox {{
+                background-color: {fundo};
+                color: {texto};
+                border: 1px solid {borda};
+                border-radius: 7px;
+                padding: 5px 10px;
+                min-height: 36px;
+                max-height: 38px;
+                font-size: 13px;
+                font-weight: 700;
+            }}
+
+            QComboBox:hover {{
+                border: 1px solid {texto};
+            }}
+
+            QComboBox:focus {{
+                border: 1px solid {texto};
+            }}
+        """)
 
     # ======================================
     # LANÇAR FRETE
@@ -2081,3 +2188,5 @@ class Fretes(QWidget):
         self.campo_observacao.clear()
 
         self.campo_status.setCurrentText("Aguardando saldo")
+
+        self.campo_status.currentTextChanged.connect(self.atualizar_cor_status)
