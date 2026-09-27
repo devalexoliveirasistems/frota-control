@@ -1513,125 +1513,167 @@ class Fretes(QWidget):
         aba_resumo = QWidget()
         layout_aba_resumo = QVBoxLayout(aba_resumo)
 
-        layout_aba_resumo.setContentsMargins(0, 0, 0, 0)
+        layout_aba_resumo.setContentsMargins(8, 8, 8, 8)
 
         caixa_resumo = QGroupBox()
 
         layout_resumo = QVBoxLayout()
-        layout_resumo.setSpacing(15)
+        layout_resumo.setSpacing(12)
 
         # ==================================
         # CARDS DO RESUMO
         # ==================================
 
         linha_cards_resumo = QHBoxLayout()
-        linha_cards_resumo.setSpacing(12)
+        linha_cards_resumo.setSpacing(14)
 
-        # TOTAL DE FRETES
-        card_total_fretes = QGroupBox()
-        card_total_fretes.setFixedHeight(120)
-        layout_card_total_fretes = QVBoxLayout()
+        def criar_card_resumo(icone, titulo, valor_inicial, cor, cor_fundo):
+            card = QFrame()
+            card.setMinimumHeight(145)
+            card.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
-        label_total_fretes = QLabel("Total de fretes")
-        label_total_fretes.setObjectName("labelResumoTitulo")
+            layout_card = QHBoxLayout(card)
+            layout_card.setContentsMargins(20, 18, 20, 18)
+            layout_card.setSpacing(16)
 
-        self.valor_total_fretes = QLabel("0")
-        self.valor_total_fretes.setObjectName("valorResumo")
+            # -------------------------------
+            # ÍCONE
+            # -------------------------------
 
-        layout_card_total_fretes.addWidget(label_total_fretes)
-        layout_card_total_fretes.addWidget(self.valor_total_fretes)
+            caixa_icone = QFrame()
+            caixa_icone.setFixedSize(52, 52)
 
-        card_total_fretes.setLayout(layout_card_total_fretes)
+            caixa_icone.setStyleSheet(f"""
+                QFrame {{
+                    background-color: {cor_fundo};
+                    border: none;
+                    border-radius: 14px;
+                }}
+            """)
 
-        # VALOR TOTAL
-        card_total_valor = QGroupBox()
-        card_total_valor.setFixedHeight(120)
-        layout_card_total_valor = QVBoxLayout()
+            layout_icone = QVBoxLayout(caixa_icone)
+            layout_icone.setContentsMargins(0, 0, 0, 0)
 
-        label_total_valor = QLabel("Valor total dos fretes")
-        label_total_valor.setObjectName("labelResumoTitulo")
+            label_icone = QLabel(icone)
+            label_icone.setAlignment(Qt.AlignCenter)
 
-        self.valor_total_valor = QLabel("R$ 0,00")
-        self.valor_total_valor.setObjectName("valorResumo")
-
-        layout_card_total_valor.addWidget(label_total_valor)
-        layout_card_total_valor.addWidget(self.valor_total_valor)
-
-        card_total_valor.setLayout(layout_card_total_valor)
-
-        # TOTAL DE PEDÁGIOS
-        card_total_pedagio = QGroupBox()
-        card_total_pedagio.setFixedHeight(120)
-        layout_card_total_pedagio = QVBoxLayout()
-
-        label_total_pedagio = QLabel("Total de pedágios")
-        label_total_pedagio.setObjectName("labelResumoTitulo")
-
-        self.valor_total_pedagio = QLabel("R$ 0,00")
-        self.valor_total_pedagio.setObjectName("valorResumo")
-
-        layout_card_total_pedagio.addWidget(label_total_pedagio)
-        layout_card_total_pedagio.addWidget(self.valor_total_pedagio)
-
-        card_total_pedagio.setLayout(layout_card_total_pedagio)
-
-        linha_cards_resumo.addWidget(card_total_fretes)
-
-        linha_cards_resumo.addWidget(card_total_valor)
-
-        linha_cards_resumo.addWidget(card_total_pedagio)
-
-        # TOTAL DE COMISSÕES
-        card_total_comissao = QGroupBox()
-        card_total_comissao.setFixedHeight(120)
-        layout_card_total_comissao = QVBoxLayout()
-
-        label_total_comissao = QLabel("Total de comissões")
-        label_total_comissao.setObjectName("labelResumoTitulo")
-
-        self.valor_total_comissao = QLabel("R$ 0,00")
-        self.valor_total_comissao.setObjectName("valorResumo")
-
-        layout_card_total_comissao.addWidget(label_total_comissao)
-        layout_card_total_comissao.addWidget(self.valor_total_comissao)
-
-        card_total_comissao.setLayout(layout_card_total_comissao)
-        for card in (
-            card_total_fretes,
-            card_total_valor,
-            card_total_pedagio,
-            card_total_comissao,
-        ):
-            card.setMinimumHeight(105)
-            card.setStyleSheet("""
-                QGroupBox {
-                    background-color: #ffffff;
-                    border: 1px solid #dfe3e8;
-                    border-radius: 12px;
-                }
-
-                QLabel#labelResumoTitulo {
-                    color: #374151;
-                    font-size: 15px;
+            label_icone.setStyleSheet(f"""
+                QLabel {{
+                    color: {cor};
+                    font-size: 25px;
                     font-weight: 700;
-                    padding: 0;
-                }
+                    background: transparent;
+                    border: none;
+                }}
+            """)
 
-                QLabel#valorResumo {
-                    color: #111827;
-                    font-size: 24px;
-                    font-weight: 700;
-                    padding: 0;
+            layout_icone.addWidget(label_icone)
+
+            # -------------------------------
+            # TEXTOS
+            # -------------------------------
+
+            layout_textos = QVBoxLayout()
+            layout_textos.setContentsMargins(0, 0, 0, 0)
+            layout_textos.setSpacing(5)
+
+            label_titulo = QLabel(titulo)
+
+            label_titulo.setStyleSheet("""
+                QLabel {
+                    color: #64748b;
+                    font-size: 13px;
+                    font-weight: 600;
+                    background: transparent;
+                    border: none;
                 }
             """)
 
-            layout_card = card.layout()
-            layout_card.setContentsMargins(16, 14, 16, 14)
-            layout_card.setSpacing(6)
+            label_valor = QLabel(valor_inicial)
 
+            label_valor.setStyleSheet(f"""
+                QLabel {{
+                    color: {cor};
+                    font-size: 25px;
+                    font-weight: 800;
+                    background: transparent;
+                    border: none;
+                }}
+            """)
+
+            layout_textos.addWidget(label_titulo)
+            layout_textos.addWidget(label_valor)
+            layout_textos.addStretch()
+
+            layout_card.addWidget(caixa_icone)
+            layout_card.addLayout(layout_textos)
+            layout_card.addStretch()
+
+            # -------------------------------
+            # BORDA DO CARD
+            # -------------------------------
+
+            card.setStyleSheet("""
+                QFrame {
+                    background-color: #ffffff;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 16px;
+                }
+            """)
+
+            return card, label_valor
+
+        # ==================================
+        # TOTAL DE FRETES
+        # ==================================
+
+        card_total_fretes, self.valor_total_fretes = criar_card_resumo(
+            "🚚", "Total de fretes", "0", "#2563eb", "#eff6ff"
+        )
+
+        self.valor_total_fretes.setObjectName("valorTotalFretes")
+
+        # ==================================
+        # VALOR TOTAL
+        # ==================================
+
+        card_total_valor, self.valor_total_valor = criar_card_resumo(
+            "💰", "Valor total dos fretes", "R$ 0,00", "#16a34a", "#f0fdf4"
+        )
+
+        self.valor_total_valor.setObjectName("valorTotalValor")
+
+        # ==================================
+        # TOTAL DE PEDÁGIOS
+        # ==================================
+
+        card_total_pedagio, self.valor_total_pedagio = criar_card_resumo(
+            "🛣️", "Total de pedágios", "R$ 0,00", "#f59e0b", "#fffbeb"
+        )
+
+        self.valor_total_pedagio.setObjectName("valorTotalPedagio")
+
+        # ==================================
+        # TOTAL DE COMISSÕES
+        # ==================================
+
+        card_total_comissao, self.valor_total_comissao = criar_card_resumo(
+            "💵", "Total de comissões", "R$ 0,00", "#7c3aed", "#f5f3ff"
+        )
+
+        self.valor_total_comissao.setObjectName("valorTotalComissao")
+
+        # ==================================
+        # ADICIONAR OS 4 CARDS
+        # ==================================
+
+        linha_cards_resumo.addWidget(card_total_fretes)
+        linha_cards_resumo.addWidget(card_total_valor)
+        linha_cards_resumo.addWidget(card_total_pedagio)
         linha_cards_resumo.addWidget(card_total_comissao)
 
         layout_resumo.addLayout(linha_cards_resumo)
+        layout_resumo.addStretch()
 
         # ==================================
         # FILTRO DE PERÍODO
@@ -1652,7 +1694,7 @@ class Fretes(QWidget):
             QDateEdit {
                 min-height: 36px;
                 max-height: 38px;
-                min-width: 135px;
+                min-width: 115px;
                 border: 1px solid #cbd5e1;
                 border-radius: 7px;
                 padding: 4px 8px;
@@ -1688,8 +1730,8 @@ class Fretes(QWidget):
         self.filtro_data_final.setStyleSheet(estilo_data_periodo)
 
         botao_limpar_filtro = QPushButton("Limpar filtros")
-        botao_limpar_filtro.setMinimumHeight(36)
-        botao_limpar_filtro.setMinimumWidth(120)
+        botao_limpar_filtro.setFixedWidth(120)
+        botao_limpar_filtro.setFixedHeight(38)
         botao_limpar_filtro.setStyleSheet("""
             QPushButton {
                 background-color: #f1f5f9;
@@ -1718,6 +1760,109 @@ class Fretes(QWidget):
 
         linha_periodo.addWidget(label_data_final)
         linha_periodo.addWidget(self.filtro_data_final)
+        label_motorista_resumo = QLabel("Motorista")
+        label_motorista_resumo.setStyleSheet(estilo_label_periodo)
+
+        self.filtro_resumo_motorista = QComboBox()
+        self.filtro_resumo_motorista.setMinimumHeight(36)
+        self.filtro_resumo_motorista.setMinimumWidth(160)
+        self.filtro_resumo_motorista.setMaximumWidth(180)
+        self.filtro_resumo_motorista.setStyleSheet("""
+            QComboBox {
+                min-height: 36px;
+                border: 1px solid #cbd5e1;
+                border-radius: 7px;
+                padding: 4px 8px;f
+                background-color: #ffffff;
+                color: #111827;
+                font-size: 13px;
+                font-weight: 600;
+            }
+
+            QComboBox:hover {
+                border: 1px solid #94a3b8;
+            }
+
+            QComboBox:focus {
+                border: 1px solid #2563eb;
+            }
+        """)
+
+        self.filtro_resumo_motorista.addItem("Todos", None)
+
+        sessao = SessionLocal()
+        try:
+            motoristas = (
+                sessao.query(Motorista)
+                .filter(Motorista.status == "Ativo")
+                .order_by(Motorista.nome.asc())
+                .all()
+            )
+
+            for motorista in motoristas:
+                self.filtro_resumo_motorista.addItem(
+                    motorista.nome,
+                    motorista.id,
+                )
+        finally:
+            sessao.close()
+
+        label_placa_resumo = QLabel("Placa")
+        label_placa_resumo.setStyleSheet(estilo_label_periodo)
+
+        self.filtro_resumo_placa = QComboBox()
+        self.filtro_resumo_placa.setMinimumHeight(36)
+        self.filtro_resumo_placa.setMinimumWidth(100)
+        self.filtro_resumo_placa.setMaximumWidth(120)
+        self.filtro_resumo_placa.setStyleSheet("""
+            QComboBox {
+                min-height: 36px;
+                border: 1px solid #cbd5e1;
+                border-radius: 7px;
+                padding: 4px 8px;
+                background-color: #ffffff;
+                color: #111827;
+                font-size: 13px;
+                font-weight: 600;
+            }
+
+            QComboBox:hover {
+                border: 1px solid #94a3b8;
+            }
+
+            QComboBox:focus {
+                border: 1px solid #2563eb;
+            }
+        """)
+
+        self.filtro_resumo_placa.addItem("Todas", None)
+
+        sessao = SessionLocal()
+        try:
+            veiculos = (
+                sessao.query(Veiculo)
+                .filter(Veiculo.status == "Ativo")
+                .order_by(Veiculo.placa.asc())
+                .all()
+            )
+
+            for veiculo in veiculos:
+                self.filtro_resumo_placa.addItem(
+                    veiculo.placa,
+                    veiculo.id,
+                )
+        finally:
+            sessao.close()
+
+        self.filtro_resumo_motorista.currentIndexChanged.connect(self.carregar_resumo)
+
+        self.filtro_resumo_placa.currentIndexChanged.connect(self.carregar_resumo)
+
+        linha_periodo.addWidget(label_motorista_resumo)
+        linha_periodo.addWidget(self.filtro_resumo_motorista)
+
+        linha_periodo.addWidget(label_placa_resumo)
+        linha_periodo.addWidget(self.filtro_resumo_placa)
 
         linha_periodo.addWidget(botao_limpar_filtro)
         linha_periodo.addStretch()
@@ -2321,21 +2466,36 @@ class Fretes(QWidget):
 
     def limpar_filtro_resumo(self):
         self.filtro_data_inicial.setDate(QDate.currentDate().addDays(-30))
+
         self.filtro_data_final.setDate(QDate.currentDate())
+
+        self.filtro_resumo_motorista.setCurrentIndex(0)
+        self.filtro_resumo_placa.setCurrentIndex(0)
+
         self.carregar_resumo()
 
     def carregar_resumo(self):
         sessao = SessionLocal()
 
         try:
-            fretes = (
-                sessao.query(Frete)
-                .filter(
-                    Frete.dia >= self.filtro_data_inicial.date().toPython(),
-                    Frete.dia <= self.filtro_data_final.date().toPython(),
-                )
-                .all()
+            data_inicial = self.filtro_data_inicial.date().toPython()
+            data_final = self.filtro_data_final.date().toPython()
+
+            motorista_id = self.filtro_resumo_motorista.currentData()
+            veiculo_id = self.filtro_resumo_placa.currentData()
+
+            consulta = sessao.query(Frete).filter(
+                Frete.dia >= data_inicial,
+                Frete.dia <= data_final,
             )
+
+            if motorista_id is not None:
+                consulta = consulta.filter(Frete.motorista_id == motorista_id)
+
+            if veiculo_id is not None:
+                consulta = consulta.filter(Frete.veiculo_id == veiculo_id)
+
+            fretes = consulta.all()
 
             total_fretes = len(fretes)
 
