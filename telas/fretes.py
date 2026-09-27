@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (
 )
 
 from PySide6.QtCore import QDate, Qt
-from PySide6.QtGui import QKeyEvent
+from PySide6.QtGui import QKeyEvent, QColor
 
 from banco.sessao import SessionLocal
 from banco.modelos import Frete, Veiculo, Motorista
@@ -841,34 +841,49 @@ class Fretes(QWidget):
         botao_editar.setMinimumHeight(34)
         botao_editar.setStyleSheet("""
             QPushButton {
-                background-color: #f3f4f6;
-                color: #374151;
-                border: 1px solid #d1d5db;
-                border-radius: 7px;
+                background-color: #eff6ff;
+                color: #1d4ed8;
+                border: 1px solid #bfdbfe;
+                border-radius: 8px;
                 padding: 7px 16px;
-                font-weight: bold;
+                font-size: 14px;
+                font-weight: 700;
             }
 
             QPushButton:hover {
-                background-color: #e5e7eb;
+                background-color: #dbeafe;
+                border-color: #93c5fd;
+                color: #1e40af;
+            }
+
+            QPushButton:pressed {
+                background-color: #bfdbfe;
+                border-color: #60a5fa;
             }
         """)
-
         botao_excluir = QPushButton("Excluir frete")
         botao_excluir.setMinimumWidth(140)
         botao_excluir.setMinimumHeight(34)
         botao_excluir.setStyleSheet("""
             QPushButton {
-                background-color: #fee2e2;
+                background-color: #fef2f2;
                 color: #b91c1c;
                 border: 1px solid #fecaca;
-                border-radius: 7px;
+                border-radius: 8px;
                 padding: 7px 16px;
-                font-weight: bold;
+                font-size: 14px;
+                font-weight: 700;
             }
 
             QPushButton:hover {
+                background-color: #fee2e2;
+                border-color: #fca5a5;
+                color: #991b1b;
+            }
+
+            QPushButton:pressed {
                 background-color: #fecaca;
+                border-color: #f87171;
             }
         """)
 
@@ -938,56 +953,186 @@ class Fretes(QWidget):
 
         layout_aba_fretes.setContentsMargins(0, 0, 0, 0)
 
-        caixa_fretes = QGroupBox("Fretes Lançados")
+        caixa_fretes = QGroupBox()
+
+        titulo_fretes_lancados = QLabel("Fretes Lançados")
+        titulo_fretes_lancados.setStyleSheet("""
+            QLabel {
+                color: #1f2937;
+                font-size: 19px;
+                font-weight: 700;
+                padding: 4px 0 10px 4px;
+                border-bottom: 2px solid #dbeafe;
+            }
+        """)
+
         layout_fretes = QVBoxLayout()
 
+        layout_fretes.addWidget(titulo_fretes_lancados)
+
+        # ==================================
         # FILTROS
+        # ==================================
 
         linha_filtros = QHBoxLayout()
-        linha_filtros.setSpacing(10)
+        linha_filtros.setSpacing(8)
+        linha_filtros.setContentsMargins(0, 8, 0, 8)
 
-        linha_filtros.addWidget(QLabel("Motorista:"))
+        estilo_label_filtro = """
+            QLabel {
+                color: #1f2937;
+                font-size: 13px;
+                font-weight: 700;
+            }
+        """
+
+        estilo_campo_filtro = """
+            QComboBox,
+            QDateEdit {
+                min-height: 36px;
+                max-height: 38px;
+                border: 1px solid #cbd5e1;
+                border-radius: 7px;
+                padding: 4px 8px;
+                background-color: #ffffff;
+                color: #111827;
+                font-size: 13px;
+                font-weight: 600;
+            }
+
+            QComboBox:hover,
+            QDateEdit:hover {
+                border: 1px solid #94a3b8;
+            }
+
+            QComboBox:focus,
+            QDateEdit:focus {
+                border: 1px solid #2563eb;
+            }
+
+        """
+
+        # MOTORISTA
+        label_motorista = QLabel("Motorista:")
+        label_motorista.setStyleSheet(estilo_label_filtro)
+        linha_filtros.addWidget(label_motorista)
 
         self.filtro_motorista = QComboBox()
+        self.filtro_motorista.setMinimumWidth(190)
+        self.filtro_motorista.setMaximumWidth(220)
+        self.filtro_motorista.setStyleSheet(estilo_campo_filtro)
         self.filtro_motorista.addItem("Todos", None)
         self.filtro_motorista.currentIndexChanged.connect(self.aplicar_filtros_fretes)
         linha_filtros.addWidget(self.filtro_motorista)
 
-        linha_filtros.addWidget(QLabel("Placa:"))
+        # PLACA
+        label_placa = QLabel("Placa:")
+        label_placa.setStyleSheet(estilo_label_filtro)
+        linha_filtros.addWidget(label_placa)
 
         self.filtro_placa = QComboBox()
+        self.filtro_placa.setMinimumWidth(120)
+        self.filtro_placa.setMaximumWidth(140)
+        self.filtro_placa.setStyleSheet(estilo_campo_filtro)
         self.filtro_placa.addItem("Todas", None)
         self.filtro_placa.currentIndexChanged.connect(self.aplicar_filtros_fretes)
         linha_filtros.addWidget(self.filtro_placa)
 
-        linha_filtros.addWidget(QLabel("Data inicial:"))
+        # DATA INICIAL
+        label_data_inicial = QLabel("De:")
+        label_data_inicial.setStyleSheet(estilo_label_filtro)
+        linha_filtros.addWidget(label_data_inicial)
 
         self.filtro_fretes_data_inicial = QDateEdit()
         self.filtro_fretes_data_inicial.setCalendarPopup(True)
+        self.filtro_fretes_data_inicial.setMinimumWidth(135)
+        self.filtro_fretes_data_inicial.setMaximumWidth(150)
+        self.filtro_fretes_data_inicial.setStyleSheet(estilo_campo_filtro)
         self.filtro_fretes_data_inicial.setDate(QDate.currentDate().addDays(-30))
         self.filtro_fretes_data_inicial.dateChanged.connect(self.aplicar_filtros_fretes)
         linha_filtros.addWidget(self.filtro_fretes_data_inicial)
 
-        linha_filtros.addWidget(QLabel("Data final:"))
+        # DATA FINAL
+        label_data_final = QLabel("Até:")
+        label_data_final.setStyleSheet(estilo_label_filtro)
+        linha_filtros.addWidget(label_data_final)
 
         self.filtro_fretes_data_final = QDateEdit()
         self.filtro_fretes_data_final.setCalendarPopup(True)
+        self.filtro_fretes_data_final.setMinimumWidth(135)
+        self.filtro_fretes_data_final.setMaximumWidth(150)
+        self.filtro_fretes_data_final.setStyleSheet(estilo_campo_filtro)
         self.filtro_fretes_data_final.setDate(QDate.currentDate())
         self.filtro_fretes_data_final.dateChanged.connect(self.aplicar_filtros_fretes)
         linha_filtros.addWidget(self.filtro_fretes_data_final)
 
+        # LIMPAR FILTROS
         botao_limpar_filtros = QPushButton("Limpar filtros")
+        botao_limpar_filtros.setMinimumWidth(115)
+        botao_limpar_filtros.setMinimumHeight(36)
+        botao_limpar_filtros.setMaximumHeight(38)
+
+        botao_limpar_filtros.setStyleSheet("""
+            QPushButton {
+                background-color: #f1f5f9;
+                color: #1f2937;
+                border: 1px solid #cbd5e1;
+                border-radius: 7px;
+                padding: 6px 12px;
+                font-size: 13px;
+                font-weight: 700;
+            }
+
+            QPushButton:hover {
+                background-color: #e2e8f0;
+                border-color: #94a3b8;
+            }
+
+            QPushButton:pressed {
+                background-color: #cbd5e1;
+            }
+        """)
+
         botao_limpar_filtros.clicked.connect(self.limpar_filtros_fretes)
+
         linha_filtros.addWidget(botao_limpar_filtros)
+
+        # INDICADORES
+        linha_filtros.addStretch()
+
         self.valor_fretes_filtrados = QLabel("Fretes: 0")
+        self.valor_fretes_filtrados.setStyleSheet("""
+            QLabel {
+                background-color: #eff6ff;
+                color: #1d4ed8;
+                border: 1px solid #bfdbfe;
+                border-radius: 7px;
+                padding: 7px 12px;
+                font-size: 13px;
+                font-weight: 700;
+            }
+        """)
         linha_filtros.addWidget(self.valor_fretes_filtrados)
 
         self.valor_valor_fretes_filtrados = QLabel("Total: R$ 0,00")
+        self.valor_valor_fretes_filtrados.setStyleSheet("""
+            QLabel {
+                background-color: #f0fdf4;
+                color: #15803d;
+                border: 1px solid #bbf7d0;
+                border-radius: 7px;
+                padding: 7px 12px;
+                font-size: 13px;
+                font-weight: 700;
+            }
+        """)
         linha_filtros.addWidget(self.valor_valor_fretes_filtrados)
 
         layout_fretes.addLayout(linha_filtros)
 
         linha_acoes = QHBoxLayout()
+        linha_acoes.setSpacing(8)
+
         linha_acoes.addStretch()
 
         linha_acoes.addWidget(botao_editar)
@@ -1041,6 +1186,76 @@ class Fretes(QWidget):
         self.tabela_fretes.setAlternatingRowColors(True)
 
         self.tabela_fretes.setSelectionBehavior(QTableWidget.SelectRows)
+
+        self.tabela_fretes.setStyleSheet("""
+            QTableWidget {
+                background-color: #ffffff;
+                alternate-background-color: #f8fafc;
+                border: 1px solid #d9dee7;
+                border-radius: 8px;
+                gridline-color: #e5e7eb;
+                color: #202124;
+                font-size: 13px;
+                selection-background-color: #dbeafe;
+                selection-color: #1e3a8a;
+            }
+
+            QTableWidget::item {
+                padding: 6px;
+                border: none;
+            }
+
+            QTableWidget::item:selected {
+                background-color: #dbeafe;
+                color: #1e3a8a;
+            }
+
+            QHeaderView::section {
+                background-color: #f1f5f9;
+                color: #374151;
+                padding: 8px 10px;
+                border: none;
+                border-bottom: 1px solid #d9dee7;
+                font-size: 13px;
+                font-weight: 700;
+            }
+
+            QHeaderView::section:hover {
+                background-color: #e5e7eb;
+            }
+
+            QScrollBar:vertical {
+                background-color: #f1f3f5;
+                width: 10px;
+                margin: 2px;
+            }
+
+            QScrollBar::handle:vertical {
+                background-color: #cbd5e1;
+                border-radius: 5px;
+                min-height: 30px;
+            }
+
+            QScrollBar::handle:vertical:hover {
+                background-color: #94a3b8;
+            }
+
+            QScrollBar:horizontal {
+                background-color: #f1f3f5;
+                height: 10px;
+                margin: 2px;
+            }
+
+            QScrollBar::handle:horizontal {
+                background-color: #cbd5e1;
+                border-radius: 5px;
+                min-width: 30px;
+            }
+
+            QScrollBar::handle:horizontal:hover {
+                background-color: #94a3b8;
+            }
+        """)
 
         self.tabela_fretes.cellDoubleClicked.connect(
             lambda linha, coluna: self.editar_frete()
@@ -1099,15 +1314,27 @@ class Fretes(QWidget):
         layout_comissoes.setContentsMargins(20, 20, 20, 20)
         layout_comissoes.setSpacing(12)
 
-        titulo_comissoes = QLabel("Comissões dos Motoristas")
+        titulo_comissoes = QLabel("Comissões de Motoristas")
         titulo_comissoes.setStyleSheet("""
-            font-size: 20px;
-            font-weight: bold;
+            QLabel {
+                color: #1f2937;
+                font-size: 20px;
+                font-weight: 700;
+                padding: 4px 0 10px 4px;
+                border-bottom: 2px solid #dcfce7;
+            }
         """)
 
-        descricao_comissoes = QLabel("Acompanhe as comissões geradas por cada viagem.")
+        descricao_comissoes = QLabel(
+            "Consulte as comissões geradas pelos fretes realizados."
+        )
         descricao_comissoes.setStyleSheet("""
-            font-size: 13px;
+            QLabel {
+                color: #4b5563;
+                font-size: 14px;
+                font-weight: 500;
+                padding: 2px 0 6px 4px;
+            }
         """)
 
         layout_comissoes.addWidget(titulo_comissoes)
@@ -1116,36 +1343,41 @@ class Fretes(QWidget):
         linha_filtro_comissao = QHBoxLayout()
         linha_filtro_comissao.setSpacing(10)
 
-        label_filtro_motorista = QLabel("Motorista")
+        label_filtro_motorista = QLabel("Filtrar por motorista:")
         label_filtro_motorista.setStyleSheet("""
-            font-weight: bold;
+            QLabel {
+                color: #1f2937;
+                font-size: 15px;
+                font-weight: 700;
+            }
         """)
 
         linha_filtro_comissao.addWidget(label_filtro_motorista)
 
         self.filtro_comissao_motorista = QComboBox()
-        self.filtro_comissao_motorista.setMinimumHeight(36)
-        self.filtro_comissao_motorista.setMinimumWidth(260)
+        self.filtro_comissao_motorista.setMinimumHeight(38)
+        self.filtro_comissao_motorista.setMinimumWidth(220)
+        self.filtro_comissao_motorista.setMaximumWidth(280)
+
         self.filtro_comissao_motorista.setStyleSheet("""
             QComboBox {
-                border: 1px solid #d6dbe1;
+                min-height: 38px;
+                border: 1px solid #cbd5e1;
                 border-radius: 8px;
-                padding: 6px 12px;
-                background-color: white;
-                font-size: 13px;
+                padding: 5px 10px;
+                background-color: #ffffff;
+                color: #111827;
+                font-size: 14px;
+                font-weight: 600;
             }
 
             QComboBox:hover {
-                border: 1px solid #9aa4b2;
+                border: 1px solid #94a3b8;
+                background-color: #f8fafc;
             }
 
             QComboBox:focus {
-                border: 1px solid #6b7280;
-            }
-
-            QComboBox::drop-down {
-                border: none;
-                width: 30px;
+                border: 1px solid #2563eb;
             }
         """)
         self.filtro_comissao_motorista.addItem("Todos", None)
@@ -1170,7 +1402,31 @@ class Fretes(QWidget):
         )
 
         linha_filtro_comissao.addWidget(self.filtro_comissao_motorista, 1)
-        botao_limpar_comissao = QPushButton("Limpar")
+
+        botao_limpar_comissao = QPushButton("Limpar filtros")
+        botao_limpar_comissao.setMinimumHeight(38)
+        botao_limpar_comissao.setMinimumWidth(120)
+
+        botao_limpar_comissao.setStyleSheet("""
+            QPushButton {
+                background-color: #f1f5f9;
+                color: #1f2937;
+                border: 1px solid #cbd5e1;
+                border-radius: 8px;
+                padding: 7px 16px;
+                font-size: 14px;
+                font-weight: 700;
+            }
+
+            QPushButton:hover {
+                background-color: #e2e8f0;
+                border-color: #94a3b8;
+            }
+
+            QPushButton:pressed {
+                background-color: #cbd5e1;
+            }
+        """)
         botao_limpar_comissao.setMinimumHeight(36)
         botao_limpar_comissao.setMinimumWidth(100)
 
@@ -1259,7 +1515,8 @@ class Fretes(QWidget):
 
         layout_aba_resumo.setContentsMargins(0, 0, 0, 0)
 
-        caixa_resumo = QGroupBox("Resumo dos Fretes")
+        caixa_resumo = QGroupBox()
+
         layout_resumo = QVBoxLayout()
         layout_resumo.setSpacing(15)
 
@@ -1272,6 +1529,7 @@ class Fretes(QWidget):
 
         # TOTAL DE FRETES
         card_total_fretes = QGroupBox()
+        card_total_fretes.setFixedHeight(120)
         layout_card_total_fretes = QVBoxLayout()
 
         label_total_fretes = QLabel("Total de fretes")
@@ -1287,6 +1545,7 @@ class Fretes(QWidget):
 
         # VALOR TOTAL
         card_total_valor = QGroupBox()
+        card_total_valor.setFixedHeight(120)
         layout_card_total_valor = QVBoxLayout()
 
         label_total_valor = QLabel("Valor total dos fretes")
@@ -1302,6 +1561,7 @@ class Fretes(QWidget):
 
         # TOTAL DE PEDÁGIOS
         card_total_pedagio = QGroupBox()
+        card_total_pedagio.setFixedHeight(120)
         layout_card_total_pedagio = QVBoxLayout()
 
         label_total_pedagio = QLabel("Total de pedágios")
@@ -1322,8 +1582,8 @@ class Fretes(QWidget):
         linha_cards_resumo.addWidget(card_total_pedagio)
 
         # TOTAL DE COMISSÕES
-
         card_total_comissao = QGroupBox()
+        card_total_comissao.setFixedHeight(120)
         layout_card_total_comissao = QVBoxLayout()
 
         label_total_comissao = QLabel("Total de comissões")
@@ -1336,6 +1596,38 @@ class Fretes(QWidget):
         layout_card_total_comissao.addWidget(self.valor_total_comissao)
 
         card_total_comissao.setLayout(layout_card_total_comissao)
+        for card in (
+            card_total_fretes,
+            card_total_valor,
+            card_total_pedagio,
+            card_total_comissao,
+        ):
+            card.setMinimumHeight(105)
+            card.setStyleSheet("""
+                QGroupBox {
+                    background-color: #ffffff;
+                    border: 1px solid #dfe3e8;
+                    border-radius: 12px;
+                }
+
+                QLabel#labelResumoTitulo {
+                    color: #374151;
+                    font-size: 15px;
+                    font-weight: 700;
+                    padding: 0;
+                }
+
+                QLabel#valorResumo {
+                    color: #111827;
+                    font-size: 24px;
+                    font-weight: 700;
+                    padding: 0;
+                }
+            """)
+
+            layout_card = card.layout()
+            layout_card.setContentsMargins(16, 14, 16, 14)
+            layout_card.setSpacing(6)
 
         linha_cards_resumo.addWidget(card_total_comissao)
 
@@ -1344,29 +1636,91 @@ class Fretes(QWidget):
         # ==================================
         # FILTRO DE PERÍODO
         # ==================================
-
         linha_periodo = QHBoxLayout()
+        linha_periodo.setSpacing(8)
+        linha_periodo.setContentsMargins(0, 0, 0, 4)
 
-        linha_periodo.addWidget(QLabel("Data inicial"))
+        estilo_label_periodo = """
+            QLabel {
+                color: #374151;
+                font-size: 13px;
+                font-weight: 700;
+            }
+        """
+
+        estilo_data_periodo = """
+            QDateEdit {
+                min-height: 36px;
+                max-height: 38px;
+                min-width: 135px;
+                border: 1px solid #cbd5e1;
+                border-radius: 7px;
+                padding: 4px 8px;
+                background-color: #ffffff;
+                color: #111827;
+                font-size: 13px;
+                font-weight: 600;
+            }
+
+            QDateEdit:hover {
+                border: 1px solid #94a3b8;
+            }
+
+            QDateEdit:focus {
+                border: 1px solid #2563eb;
+            }
+        """
+
+        label_data_inicial = QLabel("Data inicial")
+        label_data_inicial.setStyleSheet(estilo_label_periodo)
 
         self.filtro_data_inicial = QDateEdit()
         self.filtro_data_inicial.setCalendarPopup(True)
         self.filtro_data_inicial.setDate(QDate.currentDate().addDays(-30))
+        self.filtro_data_inicial.setStyleSheet(estilo_data_periodo)
 
-        linha_periodo.addWidget(self.filtro_data_inicial)
-
-        linha_periodo.addWidget(QLabel("Data final"))
+        label_data_final = QLabel("Data final")
+        label_data_final.setStyleSheet(estilo_label_periodo)
 
         self.filtro_data_final = QDateEdit()
         self.filtro_data_final.setCalendarPopup(True)
         self.filtro_data_final.setDate(QDate.currentDate())
-
-        linha_periodo.addWidget(self.filtro_data_final)
+        self.filtro_data_final.setStyleSheet(estilo_data_periodo)
 
         botao_limpar_filtro = QPushButton("Limpar filtros")
+        botao_limpar_filtro.setMinimumHeight(36)
+        botao_limpar_filtro.setMinimumWidth(120)
+        botao_limpar_filtro.setStyleSheet("""
+            QPushButton {
+                background-color: #f1f5f9;
+                color: #1f2937;
+                border: 1px solid #cbd5e1;
+                border-radius: 8px;
+                padding: 7px 16px;
+                font-size: 13px;
+                font-weight: 700;
+            }
+
+            QPushButton:hover {
+                background-color: #e2e8f0;
+                border-color: #94a3b8;
+            }
+
+            QPushButton:pressed {
+                background-color: #cbd5e1;
+            }
+        """)
+
         botao_limpar_filtro.clicked.connect(self.limpar_filtro_resumo)
 
+        linha_periodo.addWidget(label_data_inicial)
+        linha_periodo.addWidget(self.filtro_data_inicial)
+
+        linha_periodo.addWidget(label_data_final)
+        linha_periodo.addWidget(self.filtro_data_final)
+
         linha_periodo.addWidget(botao_limpar_filtro)
+        linha_periodo.addStretch()
 
         layout_resumo.insertLayout(0, linha_periodo)
 
@@ -1863,6 +2217,23 @@ class Fretes(QWidget):
                             frete.id,
                         )
 
+                    # COR DO STATUS
+                    if coluna == 12:
+                        if frete.status == "Aguardando adiantamento":
+                            item.setBackground(QColor("#fff7ed"))
+                            item.setForeground(QColor("#c2410c"))
+
+                        elif frete.status == "Aguardando saldo":
+                            item.setBackground(QColor("#eff6ff"))
+                            item.setForeground(QColor("#1d4ed8"))
+
+                        elif frete.status == "Concluído":
+                            item.setBackground(QColor("#f0fdf4"))
+                            item.setForeground(QColor("#15803d"))
+
+                        item.setTextAlignment(Qt.AlignCenter)
+                        item.setFont(item.font())
+
                     self.tabela_fretes.setItem(
                         linha,
                         coluna,
@@ -2031,6 +2402,11 @@ class Fretes(QWidget):
 
                     if coluna in [0, 1, 3]:
                         item.setTextAlignment(Qt.AlignCenter)
+
+                    if coluna == 5:
+                        item.setTextAlignment(Qt.AlignCenter)
+                        item.setBackground(QColor("#f0fdf4"))
+                        item.setForeground(QColor("#15803d"))
 
                     elif coluna == 5:
                         item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
