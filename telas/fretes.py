@@ -1676,11 +1676,8 @@ class Fretes(QWidget):
         layout_resumo.addStretch()
 
         # ==================================
-        # FILTRO DE PERÍODO
+        # FILTROS DO RESUMO
         # ==================================
-        linha_periodo = QHBoxLayout()
-        linha_periodo.setSpacing(8)
-        linha_periodo.setContentsMargins(0, 0, 0, 4)
 
         estilo_label_periodo = """
             QLabel {
@@ -1690,11 +1687,11 @@ class Fretes(QWidget):
             }
         """
 
-        estilo_data_periodo = """
+        estilo_campo_periodo = """
+            QComboBox,
             QDateEdit {
                 min-height: 36px;
-                max-height: 38px;
-                min-width: 115px;
+                max-height: 36px;
                 border: 1px solid #cbd5e1;
                 border-radius: 7px;
                 padding: 4px 8px;
@@ -1704,89 +1701,50 @@ class Fretes(QWidget):
                 font-weight: 600;
             }
 
+            QComboBox:hover,
             QDateEdit:hover {
                 border: 1px solid #94a3b8;
             }
 
+            QComboBox:focus,
             QDateEdit:focus {
                 border: 1px solid #2563eb;
             }
         """
 
+        # ----------------------------------------------------------
+        # DATA INICIAL
+        # ----------------------------------------------------------
         label_data_inicial = QLabel("Data inicial")
         label_data_inicial.setStyleSheet(estilo_label_periodo)
 
         self.filtro_data_inicial = QDateEdit()
         self.filtro_data_inicial.setCalendarPopup(True)
         self.filtro_data_inicial.setDate(QDate.currentDate().addDays(-30))
-        self.filtro_data_inicial.setStyleSheet(estilo_data_periodo)
+        self.filtro_data_inicial.setFixedSize(180, 36)
+        self.filtro_data_inicial.setStyleSheet(estilo_campo_periodo)
 
+        # ----------------------------------------------------------
+        # DATA FINAL
+        # ----------------------------------------------------------
         label_data_final = QLabel("Data final")
         label_data_final.setStyleSheet(estilo_label_periodo)
 
         self.filtro_data_final = QDateEdit()
         self.filtro_data_final.setCalendarPopup(True)
         self.filtro_data_final.setDate(QDate.currentDate())
-        self.filtro_data_final.setStyleSheet(estilo_data_periodo)
+        self.filtro_data_final.setFixedSize(180, 36)
+        self.filtro_data_final.setStyleSheet(estilo_campo_periodo)
 
-        botao_limpar_filtro = QPushButton("Limpar filtros")
-        botao_limpar_filtro.setFixedWidth(120)
-        botao_limpar_filtro.setFixedHeight(38)
-        botao_limpar_filtro.setStyleSheet("""
-            QPushButton {
-                background-color: #f1f5f9;
-                color: #1f2937;
-                border: 1px solid #cbd5e1;
-                border-radius: 8px;
-                padding: 7px 16px;
-                font-size: 13px;
-                font-weight: 700;
-            }
-
-            QPushButton:hover {
-                background-color: #e2e8f0;
-                border-color: #94a3b8;
-            }
-
-            QPushButton:pressed {
-                background-color: #cbd5e1;
-            }
-        """)
-
-        botao_limpar_filtro.clicked.connect(self.limpar_filtro_resumo)
-
-        linha_periodo.addWidget(label_data_inicial)
-        linha_periodo.addWidget(self.filtro_data_inicial)
-
-        linha_periodo.addWidget(label_data_final)
-        linha_periodo.addWidget(self.filtro_data_final)
+        # ----------------------------------------------------------
+        # MOTORISTA
+        # ----------------------------------------------------------
         label_motorista_resumo = QLabel("Motorista")
         label_motorista_resumo.setStyleSheet(estilo_label_periodo)
 
         self.filtro_resumo_motorista = QComboBox()
-        self.filtro_resumo_motorista.setMinimumHeight(36)
-        self.filtro_resumo_motorista.setMinimumWidth(160)
-        self.filtro_resumo_motorista.setMaximumWidth(180)
-        self.filtro_resumo_motorista.setStyleSheet("""
-            QComboBox {
-                min-height: 36px;
-                border: 1px solid #cbd5e1;
-                border-radius: 7px;
-                padding: 4px 8px;f
-                background-color: #ffffff;
-                color: #111827;
-                font-size: 13px;
-                font-weight: 600;
-            }
-
-            QComboBox:hover {
-                border: 1px solid #94a3b8;
-            }
-
-            QComboBox:focus {
-                border: 1px solid #2563eb;
-            }
-        """)
+        self.filtro_resumo_motorista.setFixedSize(180, 36)
+        self.filtro_resumo_motorista.setStyleSheet(estilo_campo_periodo)
 
         self.filtro_resumo_motorista.addItem("Todos", None)
 
@@ -1807,33 +1765,15 @@ class Fretes(QWidget):
         finally:
             sessao.close()
 
+        # ----------------------------------------------------------
+        # PLACA
+        # ----------------------------------------------------------
         label_placa_resumo = QLabel("Placa")
         label_placa_resumo.setStyleSheet(estilo_label_periodo)
 
         self.filtro_resumo_placa = QComboBox()
-        self.filtro_resumo_placa.setMinimumHeight(36)
-        self.filtro_resumo_placa.setMinimumWidth(100)
-        self.filtro_resumo_placa.setMaximumWidth(120)
-        self.filtro_resumo_placa.setStyleSheet("""
-            QComboBox {
-                min-height: 36px;
-                border: 1px solid #cbd5e1;
-                border-radius: 7px;
-                padding: 4px 8px;
-                background-color: #ffffff;
-                color: #111827;
-                font-size: 13px;
-                font-weight: 600;
-            }
-
-            QComboBox:hover {
-                border: 1px solid #94a3b8;
-            }
-
-            QComboBox:focus {
-                border: 1px solid #2563eb;
-            }
-        """)
+        self.filtro_resumo_placa.setFixedSize(180, 36)
+        self.filtro_resumo_placa.setStyleSheet(estilo_campo_periodo)
 
         self.filtro_resumo_placa.addItem("Todas", None)
 
@@ -1854,20 +1794,178 @@ class Fretes(QWidget):
         finally:
             sessao.close()
 
+        # ----------------------------------------------------------
+        # BOTÃO LIMPAR
+        # ----------------------------------------------------------
+        botao_limpar_filtro = QPushButton("Limpar filtros")
+        botao_limpar_filtro.setFixedSize(120, 36)
+        botao_limpar_filtro.setStyleSheet("""
+            QPushButton {
+                background-color: #f1f5f9;
+                color: #1f2937;
+                border: 1px solid #cbd5e1;
+                border-radius: 7px;
+                padding: 6px 12px;
+                font-size: 13px;
+                font-weight: 700;
+            }
+
+            QPushButton:hover {
+                background-color: #e2e8f0;
+                border-color: #94a3b8;
+            }
+
+            QPushButton:pressed {
+                background-color: #cbd5e1;
+            }
+        """)
+
+        botao_limpar_filtro.clicked.connect(self.limpar_filtro_resumo)
+
+        # ----------------------------------------------------------
+        # ÍCONES
+        # ----------------------------------------------------------
+        icone_data_inicial = QLabel("\U0001f4c5")
+        icone_data_final = QLabel("\U0001f4c5")
+        icone_motorista = QLabel("\U0001f464")
+        icone_placa = QLabel("\U0001f69b")
+
+        for icone in (
+            icone_data_inicial,
+            icone_data_final,
+            icone_motorista,
+            icone_placa,
+        ):
+            icone.setFixedSize(20, 20)
+            icone.setAlignment(Qt.AlignCenter)
+            icone.setStyleSheet("""
+                QLabel {
+                    font-size: 17px;
+                }
+            """)
+
+        # ----------------------------------------------------------
+        # CARD ÚNICO DOS FILTROS
+        # ----------------------------------------------------------
+        card_filtros_resumo = QFrame()
+        card_filtros_resumo.setObjectName("cardFiltrosResumo")
+        card_filtros_resumo.setStyleSheet("""
+            QFrame#cardFiltrosResumo {
+                background-color: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+            }
+        """)
+
+        layout_card_filtros = QHBoxLayout(card_filtros_resumo)
+        layout_card_filtros.setContentsMargins(16, 14, 16, 14)
+        layout_card_filtros.setSpacing(18)
+
+        # ----------------------------------------------------------
+        # FUNÇÃO PARA CRIAR O TÍTULO DO FILTRO
+        # ----------------------------------------------------------
+        def criar_titulo_filtro(icone, texto):
+            titulo = QHBoxLayout()
+            titulo.setContentsMargins(0, 0, 0, 0)
+            titulo.setSpacing(5)
+
+            titulo.addWidget(icone)
+
+            label = QLabel(texto)
+            label.setStyleSheet(estilo_label_periodo)
+
+            titulo.addWidget(label)
+            titulo.addStretch()
+
+            return titulo
+
+        # ----------------------------------------------------------
+        # BLOCO DATA INICIAL
+        # ----------------------------------------------------------
+        bloco_data_inicial = QVBoxLayout()
+        bloco_data_inicial.setContentsMargins(0, 0, 0, 0)
+        bloco_data_inicial.setSpacing(5)
+
+        bloco_data_inicial.addLayout(
+            criar_titulo_filtro(
+                icone_data_inicial,
+                "Data inicial",
+            )
+        )
+        bloco_data_inicial.addWidget(self.filtro_data_inicial)
+
+        # ----------------------------------------------------------
+        # BLOCO DATA FINAL
+        # ----------------------------------------------------------
+        bloco_data_final = QVBoxLayout()
+        bloco_data_final.setContentsMargins(0, 0, 0, 0)
+        bloco_data_final.setSpacing(5)
+
+        bloco_data_final.addLayout(
+            criar_titulo_filtro(
+                icone_data_final,
+                "Data final",
+            )
+        )
+        bloco_data_final.addWidget(self.filtro_data_final)
+
+        # ----------------------------------------------------------
+        # BLOCO MOTORISTA
+        # ----------------------------------------------------------
+        bloco_motorista = QVBoxLayout()
+        bloco_motorista.setContentsMargins(0, 0, 0, 0)
+        bloco_motorista.setSpacing(5)
+
+        bloco_motorista.addLayout(
+            criar_titulo_filtro(
+                icone_motorista,
+                "Motorista",
+            )
+        )
+        bloco_motorista.addWidget(self.filtro_resumo_motorista)
+
+        # ----------------------------------------------------------
+        # BLOCO PLACA
+        # ----------------------------------------------------------
+        bloco_placa = QVBoxLayout()
+        bloco_placa.setContentsMargins(0, 0, 0, 0)
+        bloco_placa.setSpacing(5)
+
+        bloco_placa.addLayout(
+            criar_titulo_filtro(
+                icone_placa,
+                "Placa",
+            )
+        )
+        bloco_placa.addWidget(self.filtro_resumo_placa)
+
+        # ----------------------------------------------------------
+        # COLOCA TUDO NO CARD
+        # ----------------------------------------------------------
+        layout_card_filtros.addLayout(bloco_data_inicial)
+        layout_card_filtros.addLayout(bloco_data_final)
+        layout_card_filtros.addLayout(bloco_motorista)
+        layout_card_filtros.addLayout(bloco_placa)
+
+        layout_card_filtros.addWidget(botao_limpar_filtro, 0, Qt.AlignBottom)
+
+        layout_card_filtros.addStretch()
+
+        # ----------------------------------------------------------
+        # EVENTOS DOS FILTROS
+        # ----------------------------------------------------------
         self.filtro_resumo_motorista.currentIndexChanged.connect(self.carregar_resumo)
 
         self.filtro_resumo_placa.currentIndexChanged.connect(self.carregar_resumo)
 
-        linha_periodo.addWidget(label_motorista_resumo)
-        linha_periodo.addWidget(self.filtro_resumo_motorista)
+        self.filtro_data_inicial.dateChanged.connect(self.carregar_resumo)
 
-        linha_periodo.addWidget(label_placa_resumo)
-        linha_periodo.addWidget(self.filtro_resumo_placa)
+        self.filtro_data_final.dateChanged.connect(self.carregar_resumo)
 
-        linha_periodo.addWidget(botao_limpar_filtro)
-        linha_periodo.addStretch()
-
-        layout_resumo.insertLayout(0, linha_periodo)
+        # ----------------------------------------------------------
+        # INSERIR O CARD NO RESUMO
+        # ----------------------------------------------------------
+        layout_resumo.insertWidget(0, card_filtros_resumo)
 
         caixa_resumo.setLayout(layout_resumo)
 
