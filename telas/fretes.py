@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (
 )
 
 from PySide6.QtCore import QDate, Qt
-from PySide6.QtGui import QKeyEvent, QColor
+from PySide6.QtGui import QKeyEvent, QColor, QPixmap
 
 from banco.sessao import SessionLocal
 from banco.modelos import Frete, Veiculo, Motorista
@@ -1526,10 +1526,11 @@ class Fretes(QWidget):
 
         linha_cards_resumo = QHBoxLayout()
         linha_cards_resumo.setSpacing(14)
+        linha_cards_resumo.setContentsMargins(0, 20, 0, 0)
 
         def criar_card_resumo(icone, titulo, valor_inicial, cor, cor_fundo):
             card = QFrame()
-            card.setMinimumHeight(145)
+            card.setMinimumHeight(165)
             card.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
             layout_card = QHBoxLayout(card)
@@ -1554,8 +1555,15 @@ class Fretes(QWidget):
             layout_icone = QVBoxLayout(caixa_icone)
             layout_icone.setContentsMargins(0, 0, 0, 0)
 
-            label_icone = QLabel(icone)
+            label_icone = QLabel()
             label_icone.setAlignment(Qt.AlignCenter)
+
+            if isinstance(icone, QPixmap):
+                label_icone.setPixmap(
+                    icone.scaled(34, 34, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                )
+            else:
+                label_icone.setText(icone)
 
             label_icone.setStyleSheet(f"""
                 QLabel {{
@@ -1575,18 +1583,27 @@ class Fretes(QWidget):
 
             layout_textos = QVBoxLayout()
             layout_textos.setContentsMargins(0, 0, 0, 0)
-            layout_textos.setSpacing(5)
+            layout_textos.setSpacing(22)
 
             label_titulo = QLabel(titulo)
 
-            label_titulo.setStyleSheet("""
-                QLabel {
-                    color: #64748b;
-                    font-size: 13px;
-                    font-weight: 600;
+            cores_titulos = {
+                "N° Total de Fretes": "#2563eb",
+                "Valor Total dos Fretes": "#16a34a",
+                "Total de Pedágios": "#f59e0b",
+                "Total de Comissões": "#7c3aed",
+            }
+
+            cor_titulo = cores_titulos.get(titulo, "#64748b")
+
+            label_titulo.setStyleSheet(f"""
+                QLabel {{
+                    color: {cor_titulo};
+                    font-size: 15px;
+                    font-weight: 700;
                     background: transparent;
                     border: none;
-                }
+                }}
             """)
 
             label_valor = QLabel(valor_inicial)
@@ -1628,7 +1645,7 @@ class Fretes(QWidget):
         # ==================================
 
         card_total_fretes, self.valor_total_fretes = criar_card_resumo(
-            "🚚", "Total de fretes", "0", "#2563eb", "#eff6ff"
+            "📦", "N° Total de Fretes", "0", "#2563eb", "#eff6ff"
         )
 
         self.valor_total_fretes.setObjectName("valorTotalFretes")
@@ -1638,7 +1655,11 @@ class Fretes(QWidget):
         # ==================================
 
         card_total_valor, self.valor_total_valor = criar_card_resumo(
-            "💰", "Valor total dos fretes", "R$ 0,00", "#16a34a", "#f0fdf4"
+            "💲",
+            "Valor Total dos Fretes",
+            "R$ 0,00",
+            "#16a34a",
+            "#f0fdf4",
         )
 
         self.valor_total_valor.setObjectName("valorTotalValor")
@@ -1648,7 +1669,11 @@ class Fretes(QWidget):
         # ==================================
 
         card_total_pedagio, self.valor_total_pedagio = criar_card_resumo(
-            "🛣️", "Total de pedágios", "R$ 0,00", "#f59e0b", "#fffbeb"
+            "🛣️",
+            "Total de Pedágios",
+            "R$ 0,00",
+            "#f59e0b",
+            "#eff6ff",
         )
 
         self.valor_total_pedagio.setObjectName("valorTotalPedagio")
@@ -1658,7 +1683,11 @@ class Fretes(QWidget):
         # ==================================
 
         card_total_comissao, self.valor_total_comissao = criar_card_resumo(
-            "💵", "Total de comissões", "R$ 0,00", "#7c3aed", "#f5f3ff"
+            "💵",
+            "Total de Comissões",
+            "R$ 0,00",
+            "#7c3aed",
+            "#eff6ff",
         )
 
         self.valor_total_comissao.setObjectName("valorTotalComissao")
@@ -1827,8 +1856,18 @@ class Fretes(QWidget):
         # ----------------------------------------------------------
         icone_data_inicial = QLabel("\U0001f4c5")
         icone_data_final = QLabel("\U0001f4c5")
-        icone_motorista = QLabel("\U0001f464")
-        icone_placa = QLabel("\U0001f69b")
+        icone_motorista = QLabel()
+        icone_motorista.setPixmap(
+            QPixmap("recursos/icones/usuario.svg").scaled(
+                20, 20, Qt.KeepAspectRatio, Qt.SmoothTransformation
+            )
+        )
+        icone_placa = QLabel()
+        icone_placa.setPixmap(
+            QPixmap("recursos/icones/caminhao.svg").scaled(
+                20, 20, Qt.KeepAspectRatio, Qt.SmoothTransformation
+            )
+        )
 
         for icone in (
             icone_data_inicial,
