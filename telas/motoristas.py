@@ -103,7 +103,7 @@ class Motoristas(QWidget):
         # CADASTRO
         # =========================
 
-        card_cadastro = QGroupBox("Cadastro de Motorista")
+        card_cadastro = QGroupBox()
         card_cadastro.setObjectName("cardCadastro")
 
         card_cadastro.setStyleSheet("""
@@ -119,10 +119,10 @@ class Motoristas(QWidget):
                 subcontrol-origin: margin;
                 left: 16px;
                 padding: 0 8px;
-                color: #2563eb;
+                color: #0f172a;
                 background-color: #ffffff;
-                font-size: 17px;
-                font-weight: 700;
+                font-size: 18px;
+                font-weight: 800;
             }
         """)
 
@@ -143,6 +143,8 @@ class Motoristas(QWidget):
 
         card_pessoais.setStyleSheet("""
             QGroupBox#cardPessoais {
+                font-size: 18px;
+                font-weight: bold;
                 background-color: #f8fafc;
                 border: 1px solid #e2e8f0;
                 border-radius: 12px;
@@ -151,13 +153,16 @@ class Motoristas(QWidget):
             }
 
             QGroupBox#cardPessoais::title {
-                subcontrol-origin: margin;
-                left: 14px;
-                padding: 0 6px;
-                color: #2563eb;
-                background-color: #f8fafc;
-                font-size: 16px;
-                font-weight: 700;
+                subcontrol-origin: padding;
+                subcontrol-position: top center;
+                left: 12px;
+                top: 5px;
+                padding: 5px 12px;
+                border-radius: 7px;
+                font-size: 30px;
+                font-weight: bold;
+                background-color: #dbeafe;
+                color: #1d4ed8;
             }
         """)
 
@@ -184,14 +189,15 @@ class Motoristas(QWidget):
             QLineEdit,
             QComboBox,
             QDateEdit {
-                min-height: 36px;
-                max-height: 36px;
-                border: 1px solid #cbd5e1;
-                border-radius: 8px;
-                padding: 0 10px;
+                min-height: 38px;
+                max-height: 38px;
+                border: 1px solid #d9dee7;
+                border-radius: 7px;
+                padding: 6px 10px;
                 background-color: #ffffff;
-                color: #0f172a;
+                color: #202124;
                 font-size: 13px;
+                font-weight: 500;
             }
 
             QLineEdit:focus,
@@ -213,9 +219,9 @@ class Motoristas(QWidget):
 
         estilo_label_pessoal = """
             QLabel {
-                color: #475569;
-                font-size: 13px;
-                font-weight: 600;
+                color: #374151;
+                font-size: 13.5px;
+                font-weight: 700;
                 background: transparent;
                 border: none;
             }
@@ -258,6 +264,8 @@ class Motoristas(QWidget):
 
         card_endereco.setStyleSheet("""
             QGroupBox#cardEndereco {
+                font-size: 18px;
+                font-weight: bold;
                 background-color: #f8fafc;
                 border: 1px solid #e2e8f0;
                 border-radius: 12px;
@@ -266,13 +274,16 @@ class Motoristas(QWidget):
             }
 
             QGroupBox#cardEndereco::title {
-                subcontrol-origin: margin;
-                left: 14px;
-                padding: 0 6px;
-                color: #0f766e;
-                background-color: #f8fafc;
-                font-size: 16px;
-                font-weight: 700;
+                subcontrol-origin: padding;
+                subcontrol-position: top center;
+                left: 12px;
+                top: 5px;
+                padding: 6px 18px;
+                border-radius: 7px;
+                font-size: 15px;
+                font-weight: bold;
+                background-color: #dcfce7;
+                color: #15803d;
             }
         """)
 
@@ -311,40 +322,74 @@ class Motoristas(QWidget):
             campo.setStyleSheet(estilo_campo)
 
         # Primeira linha
-        linha_endereco_1 = QHBoxLayout()
+        linha_endereco_1 = QVBoxLayout()
 
-        # Primeira linha
-        linha_endereco_1 = QHBoxLayout()
+        label_cep = QLabel("CEP")
+        label_cep.setStyleSheet(estilo_label_pessoal)
+        linha_endereco_1.addWidget(label_cep)
 
         linha_endereco_1.addWidget(self.campo_cep)
 
-        linha_endereco_1.addWidget(
-            self.campo_logradouro,
-            2,
-        )
-
-        linha_endereco_1.addWidget(self.campo_numero)
-
         layout_endereco.addLayout(linha_endereco_1)
+        linha_endereco_logradouro = QVBoxLayout()
+
+        label_logradouro = QLabel("Logradouro")
+        label_logradouro.setStyleSheet(estilo_label_pessoal)
+        linha_endereco_logradouro.addWidget(label_logradouro)
+        linha_endereco_logradouro.addWidget(self.campo_logradouro)
+
+        layout_endereco.addLayout(linha_endereco_logradouro)
 
         # Segunda linha
         linha_endereco_2 = QHBoxLayout()
 
-        linha_endereco_2.addWidget(self.campo_complemento)
+        coluna_numero = QVBoxLayout()
+        label_numero = QLabel("Número")
+        label_numero.setStyleSheet(estilo_label_pessoal)
+        coluna_numero.addWidget(label_numero)
+        coluna_numero.addWidget(self.campo_numero)
 
-        linha_endereco_2.addWidget(self.campo_bairro)
+        linha_endereco_2.addLayout(coluna_numero)
 
-        linha_endereco_2.addWidget(
-            self.campo_cidade,
-            2,
-        )
+        coluna_complemento = QVBoxLayout()
+        label_complemento = QLabel("Complemento")
+        label_complemento.setStyleSheet(estilo_label_pessoal)
+        coluna_complemento.addWidget(label_complemento)
+        coluna_complemento.addWidget(self.campo_complemento)
+
+        linha_endereco_2.addLayout(coluna_complemento)
 
         layout_endereco.addLayout(linha_endereco_2)
+
+        linha_endereco_bairro = QVBoxLayout()
+
+        label_bairro = QLabel("Bairro")
+        label_bairro.setStyleSheet(estilo_label_pessoal)
+        linha_endereco_bairro.addWidget(label_bairro)
+        linha_endereco_bairro.addWidget(self.campo_bairro)
+
+        layout_endereco.addLayout(linha_endereco_bairro)
 
         # Terceira linha
         linha_endereco_3 = QHBoxLayout()
 
-        linha_endereco_3.addWidget(self.campo_estado)
+        coluna_cidade = QVBoxLayout()
+        label_cidade = QLabel("Cidade")
+        label_cidade.setStyleSheet(estilo_label_pessoal)
+        coluna_cidade.addWidget(label_cidade)
+        coluna_cidade.addWidget(self.campo_cidade)
+
+        linha_endereco_3.addLayout(coluna_cidade, 2)
+
+        coluna_estado = QVBoxLayout()
+        label_estado = QLabel("Estado")
+        label_estado.setStyleSheet(estilo_label_pessoal)
+        coluna_estado.addWidget(label_estado)
+        coluna_estado.addWidget(self.campo_estado)
+
+        linha_endereco_3.addLayout(coluna_estado)
+
+        linha_endereco_3.addWidget(self.campo_cidade, 2)
 
         linha_endereco_3.addStretch()
 
@@ -358,13 +403,6 @@ class Motoristas(QWidget):
             2,
         )
 
-        for card in (
-            card_pessoais,
-            card_habilitacao,
-            card_endereco,
-        ):
-            card.setMinimumHeight(250)
-
         layout_cadastro.addLayout(grade_cards)
 
         # =========================
@@ -377,6 +415,8 @@ class Motoristas(QWidget):
 
         card_habilitacao.setStyleSheet("""
             QGroupBox#cardHabilitacao {
+                font-size: 18px;
+                font-weight: bold;
                 background-color: #f8fafc;
                 border: 1px solid #e2e8f0;
                 border-radius: 12px;
@@ -385,13 +425,16 @@ class Motoristas(QWidget):
             }
 
             QGroupBox#cardHabilitacao::title {
-                subcontrol-origin: margin;
-                left: 14px;
-                padding: 0 6px;
-                color: #7c3aed;
-                background-color: #f8fafc;
-                font-size: 16px;
-                font-weight: 700;
+                subcontrol-origin: padding;
+                subcontrol-position: top center;
+                left: 12px;
+                top: 5px;
+                padding: 6px 18px;
+                border-radius: 7px;
+                font-size: 20px;
+                font-weight: bold;
+                background-color: #ffedd5;
+                color: #c2410c;
             }
         """)
 
@@ -458,7 +501,7 @@ class Motoristas(QWidget):
         ]:
             campo.setStyleSheet(estilo_campo)
 
-        linha_habilitacao = QHBoxLayout()
+        linha_habilitacao = QVBoxLayout()
 
         label_categoria_cnh = QLabel("Categoria CNH")
         label_categoria_cnh.setStyleSheet(estilo_label_pessoal)
@@ -469,17 +512,18 @@ class Motoristas(QWidget):
         label_validade = QLabel("Validade")
         label_validade.setStyleSheet(estilo_label_pessoal)
 
-        linha_habilitacao.addWidget(label_validade)
-        linha_habilitacao.addWidget(self.campo_validade_cnh)
-
         layout_habilitacao.addLayout(linha_habilitacao)
+        linha_validade = QVBoxLayout()
+        linha_validade.addWidget(label_validade)
+        linha_validade.addWidget(self.campo_validade_cnh)
+
+        layout_habilitacao.addLayout(linha_validade)
 
         linha_documento = QHBoxLayout()
 
         label_cnh = QLabel("CNH")
         label_cnh.setStyleSheet(estilo_label_pessoal)
-
-        linha_documento.addWidget(label_cnh)
+        layout_habilitacao.addWidget(label_cnh)
 
         linha_documento.addWidget(
             self.campo_arquivo_cnh,
@@ -498,13 +542,20 @@ class Motoristas(QWidget):
             1,
         )
 
+        for card in (
+            card_pessoais,
+            card_habilitacao,
+            card_endereco,
+        ):
+            card.setMinimumHeight(250)
+
         linha_botao = QHBoxLayout()
 
         linha_botao.addStretch()
 
-        botao_novo.setMinimumWidth(180)
+        botao_novo.setMinimumWidth(200)
 
-        botao_novo.setMinimumHeight(38)
+        botao_novo.setMinimumHeight(42)
 
         botao_novo.setStyleSheet("""
             QPushButton {
@@ -529,6 +580,33 @@ class Motoristas(QWidget):
 
         linha_botao.addWidget(botao_novo)
 
+        botao_limpar = QPushButton("Limpar")
+        botao_limpar.setMinimumWidth(120)
+        botao_limpar.setMinimumHeight(38)
+
+        botao_limpar.setStyleSheet("""
+            QPushButton {
+                background-color: #e5e7eb;
+                color: #1f2937;
+                border: 1px solid #c7cdd4;
+                border-radius: 8px;
+                padding: 7px 18px;
+                font-size: 14px;
+                font-weight: 700;
+            }
+
+            QPushButton:hover {
+                background-color: #d1d5db;
+            }
+
+            QPushButton:pressed {
+                background-color: #cbd5e1;
+            }
+        """)
+
+        linha_botao.addWidget(botao_limpar)
+        botao_limpar.clicked.connect(self.limpar_motorista)
+
         layout_cadastro.addLayout(linha_botao)
 
         card_cadastro.setLayout(layout_cadastro)
@@ -537,6 +615,33 @@ class Motoristas(QWidget):
         # =========================
         # TABELA
         # =========================
+
+        titulo_cadastrados = QLabel("Motoristas cadastrados")
+        titulo_cadastrados.setStyleSheet("""
+            QLabel {
+                color: #1e293b;
+                font-size: 20px;
+                font-weight: 700;
+                background: transparent;
+                border: none;
+            }
+        """)
+
+        descricao_cadastrados = QLabel(
+            "Consulte, edite e visualize os motoristas cadastrados no sistema."
+        )
+        descricao_cadastrados.setStyleSheet("""
+            QLabel {
+                color: #64748b;
+                font-size: 13px;
+                font-weight: 500;
+                background: transparent;
+                border: none;
+            }
+        """)
+
+        layout_aba_motoristas.addWidget(titulo_cadastrados)
+        layout_aba_motoristas.addWidget(descricao_cadastrados)
 
         self.tabela = QTableWidget()
 
@@ -658,11 +763,6 @@ class Motoristas(QWidget):
 
         linha_acoes.addWidget(botao_detalhes)
         linha_acoes.addWidget(botao_editar)
-        linha_acoes.addStretch()
-
-        layout_aba_motoristas.addLayout(linha_acoes)
-
-        layout_aba_motoristas.addWidget(self.tabela)
 
         linha_acoes.addStretch()
 
@@ -674,8 +774,6 @@ class Motoristas(QWidget):
         abas.addTab(aba_motoristas, "Motoristas cadastrados")
 
         layout_principal.addWidget(abas)
-
-        self.setLayout(layout_principal)
 
         self.setLayout(layout_principal)
 
@@ -790,6 +888,7 @@ class Motoristas(QWidget):
             self.campo_categoria_cnh.setCurrentIndex(0)
 
             self.campo_validade_cnh.setDate(QDate.currentDate())
+            self.campo_validade_cnh.setMinimumWidth(180)
 
             self.campo_arquivo_cnh.clear()
 
@@ -1400,6 +1499,26 @@ class Motoristas(QWidget):
 
         finally:
             sessao.close()
+
+    def limpar_motorista(self):
+        self.campo_nome.clear()
+        self.campo_cpf.clear()
+        self.campo_telefone.clear()
+
+        self.campo_cep.clear()
+        self.campo_logradouro.clear()
+        self.campo_numero.clear()
+        self.campo_complemento.clear()
+        self.campo_bairro.clear()
+        self.campo_cidade.clear()
+        self.campo_estado.clear()
+
+        self.campo_categoria_cnh.setCurrentIndex(0)
+        self.campo_validade_cnh.setDate(QDate.currentDate())
+        self.campo_arquivo_cnh.clear()
+
+        self.campo_status.setCurrentIndex(0)
+        self.caminho_cnh = None
 
     def carregar_motoristas(self):
         sessao = SessionLocal()
