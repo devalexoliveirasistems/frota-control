@@ -33,9 +33,14 @@ class Motoristas(QWidget):
 
         titulo = QLabel("Motoristas")
         titulo.setStyleSheet("""
-            font-size: 24px;
-            font-weight: bold;
-            """)
+            QLabel {
+                color: #1e293b;
+                font-size: 26px;
+                font-weight: 700;
+                background: transparent;
+                border: none;
+            }
+        """)
 
         layout_principal.addWidget(titulo)
 
@@ -44,11 +49,55 @@ class Motoristas(QWidget):
         # =========================
 
         card_cadastro = QGroupBox("Cadastro de Motorista")
+        card_cadastro.setObjectName("cardCadastro")
+
+        card_cadastro.setStyleSheet("""
+            QGroupBox#cardCadastro {
+                background-color: #ffffff;
+                border: 1px solid #e2e8f0;
+                border-radius: 16px;
+                margin-top: 12px;
+                padding: 14px;
+            }
+
+            QGroupBox#cardCadastro::title {
+                subcontrol-origin: margin;
+                left: 16px;
+                padding: 0 8px;
+                color: #1e293b;
+                background-color: #ffffff;
+                font-size: 16px;
+                font-weight: 700;
+            }
+        """)
+
         layout_cadastro = QVBoxLayout()
 
         grade_cards = QGridLayout()
 
         card_pessoais = QGroupBox("Dados Pessoais")
+        card_pessoais.setObjectName("cardPessoais")
+
+        card_pessoais.setStyleSheet("""
+            QGroupBox#cardPessoais {
+                background-color: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+                margin-top: 10px;
+                padding: 12px;
+            }
+
+            QGroupBox#cardPessoais::title {
+                subcontrol-origin: margin;
+                left: 14px;
+                padding: 0 6px;
+                color: #2563eb;
+                background-color: #f8fafc;
+                font-size: 15px;
+                font-weight: 700;
+            }
+        """)
+
         layout_pessoais = QVBoxLayout()
 
         self.campo_nome = QLineEdit()
@@ -68,22 +117,65 @@ class Motoristas(QWidget):
             ]
         )
 
+        estilo_campo = """
+            QLineEdit,
+            QComboBox,
+            QDateEdit {
+                min-height: 36px;
+                max-height: 36px;
+                border: 1px solid #cbd5e1;
+                border-radius: 8px;
+                padding: 0 10px;
+                background-color: #ffffff;
+                color: #0f172a;
+                font-size: 13px;
+            }
+
+            QLineEdit:focus,
+            QComboBox:focus,
+            QDateEdit:focus {
+                border: 1px solid #2563eb;
+            }
+        """
+
+        for campo in [
+            self.campo_nome,
+            self.campo_cpf,
+            self.campo_telefone,
+            self.campo_status,
+        ]:
+            campo.setStyleSheet(estilo_campo)
+
         botao_novo = QPushButton("Cadastrar motorista")
 
-        layout_pessoais.addWidget(QLabel("Nome"))
+        estilo_label_pessoal = """
+            QLabel {
+                color: #475569;
+                font-size: 13px;
+                font-weight: 600;
+                background: transparent;
+                border: none;
+            }
+        """
 
+        label_nome = QLabel("Nome")
+        label_nome.setStyleSheet(estilo_label_pessoal)
+        layout_pessoais.addWidget(label_nome)
         layout_pessoais.addWidget(self.campo_nome)
 
-        layout_pessoais.addWidget(QLabel("CPF"))
-
+        label_cpf = QLabel("CPF")
+        label_cpf.setStyleSheet(estilo_label_pessoal)
+        layout_pessoais.addWidget(label_cpf)
         layout_pessoais.addWidget(self.campo_cpf)
 
-        layout_pessoais.addWidget(QLabel("Telefone"))
-
+        label_telefone = QLabel("Telefone")
+        label_telefone.setStyleSheet(estilo_label_pessoal)
+        layout_pessoais.addWidget(label_telefone)
         layout_pessoais.addWidget(self.campo_telefone)
 
-        layout_pessoais.addWidget(QLabel("Status"))
-
+        label_status = QLabel("Status")
+        label_status.setStyleSheet(estilo_label_pessoal)
+        layout_pessoais.addWidget(label_status)
         layout_pessoais.addWidget(self.campo_status)
 
         card_pessoais.setLayout(layout_pessoais)
@@ -99,6 +191,28 @@ class Motoristas(QWidget):
         # =========================
 
         card_endereco = QGroupBox("Endereço")
+        card_endereco.setObjectName("cardEndereco")
+
+        card_endereco.setStyleSheet("""
+            QGroupBox#cardEndereco {
+                background-color: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+                margin-top: 10px;
+                padding: 12px;
+            }
+
+            QGroupBox#cardEndereco::title {
+                subcontrol-origin: margin;
+                left: 14px;
+                padding: 0 6px;
+                color: #0f766e;
+                background-color: #f8fafc;
+                font-size: 15px;
+                font-weight: 700;
+            }
+        """)
+
         layout_endereco = QVBoxLayout()
 
         self.campo_cep = QLineEdit()
@@ -121,6 +235,20 @@ class Motoristas(QWidget):
 
         self.campo_estado = QLineEdit()
         self.campo_estado.setPlaceholderText("Estado")
+
+        for campo in [
+            self.campo_cep,
+            self.campo_logradouro,
+            self.campo_numero,
+            self.campo_complemento,
+            self.campo_bairro,
+            self.campo_cidade,
+            self.campo_estado,
+        ]:
+            campo.setStyleSheet(estilo_campo)
+
+        # Primeira linha
+        linha_endereco_1 = QHBoxLayout()
 
         # Primeira linha
         linha_endereco_1 = QHBoxLayout()
@@ -175,6 +303,28 @@ class Motoristas(QWidget):
         # =========================
 
         card_habilitacao = QGroupBox("Habilitação")
+        card_habilitacao.setObjectName("cardHabilitacao")
+
+        card_habilitacao.setStyleSheet("""
+            QGroupBox#cardHabilitacao {
+                background-color: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+                margin-top: 10px;
+                padding: 12px;
+            }
+
+            QGroupBox#cardHabilitacao::title {
+                subcontrol-origin: margin;
+                left: 14px;
+                padding: 0 6px;
+                color: #7c3aed;
+                background-color: #f8fafc;
+                font-size: 15px;
+                font-weight: 700;
+            }
+        """)
+
         layout_habilitacao = QVBoxLayout()
 
         self.campo_categoria_cnh = QComboBox()
@@ -207,23 +357,59 @@ class Motoristas(QWidget):
 
         botao_cnh.clicked.connect(self.adicionar_cnh)
 
-        linha_habilitacao = QHBoxLayout()
+        botao_cnh.setMinimumHeight(36)
+        botao_cnh.setMinimumWidth(150)
+
+        botao_cnh.setStyleSheet("""
+            QPushButton {
+                background-color: #f1f5f9;
+                color: #334155;
+                border: 1px solid #cbd5e1;
+                border-radius: 8px;
+                padding: 7px 14px;
+                font-size: 13px;
+                font-weight: 700;
+            }
+
+            QPushButton:hover {
+                background-color: #e2e8f0;
+                border-color: #94a3b8;
+            }
+
+            QPushButton:pressed {
+                background-color: #cbd5e1;
+            }
+        """)
+
+        for campo in [
+            self.campo_categoria_cnh,
+            self.campo_validade_cnh,
+            self.campo_arquivo_cnh,
+        ]:
+            campo.setStyleSheet(estilo_campo)
 
         linha_habilitacao = QHBoxLayout()
 
-        linha_habilitacao.addWidget(QLabel("Categoria CNH"))
+        label_categoria_cnh = QLabel("Categoria CNH")
+        label_categoria_cnh.setStyleSheet(estilo_label_pessoal)
 
+        linha_habilitacao.addWidget(label_categoria_cnh)
         linha_habilitacao.addWidget(self.campo_categoria_cnh)
 
-        linha_habilitacao.addWidget(QLabel("Validade"))
+        label_validade = QLabel("Validade")
+        label_validade.setStyleSheet(estilo_label_pessoal)
 
+        linha_habilitacao.addWidget(label_validade)
         linha_habilitacao.addWidget(self.campo_validade_cnh)
 
         layout_habilitacao.addLayout(linha_habilitacao)
 
         linha_documento = QHBoxLayout()
 
-        linha_documento.addWidget(QLabel("CNH"))
+        label_cnh = QLabel("CNH")
+        label_cnh.setStyleSheet(estilo_label_pessoal)
+
+        linha_documento.addWidget(label_cnh)
 
         linha_documento.addWidget(
             self.campo_arquivo_cnh,
@@ -247,6 +433,29 @@ class Motoristas(QWidget):
         linha_botao.addStretch()
 
         botao_novo.setMinimumWidth(180)
+
+        botao_novo.setMinimumHeight(38)
+
+        botao_novo.setStyleSheet("""
+            QPushButton {
+                background-color: #2563eb;
+                color: #ffffff;
+                border: 1px solid #2563eb;
+                border-radius: 8px;
+                padding: 8px 18px;
+                font-size: 13px;
+                font-weight: 700;
+            }
+
+            QPushButton:hover {
+                background-color: #1d4ed8;
+                border-color: #1d4ed8;
+            }
+
+            QPushButton:pressed {
+                background-color: #1e40af;
+            }
+        """)
 
         linha_botao.addWidget(botao_novo)
 
@@ -279,6 +488,41 @@ class Motoristas(QWidget):
 
         self.tabela.setEditTriggers(QTableWidget.NoEditTriggers)
 
+        self.tabela.setAlternatingRowColors(True)
+        self.tabela.setShowGrid(False)
+
+        self.tabela.verticalHeader().setDefaultSectionSize(38)
+        self.tabela.horizontalHeader().setMinimumHeight(42)
+
+        self.tabela.setStyleSheet("""
+            QTableWidget {
+                background-color: #ffffff;
+                alternate-background-color: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 10px;
+                gridline-color: #e2e8f0;
+                color: #1e293b;
+                font-size: 13px;
+                selection-background-color: #dbeafe;
+                selection-color: #1e3a8a;
+            }
+
+            QHeaderView::section {
+                background-color: #f1f5f9;
+                color: #334155;
+                border: none;
+                border-bottom: 1px solid #cbd5e1;
+                padding: 8px;
+                font-size: 13px;
+                font-weight: 700;
+            }
+
+            QTableWidget::item {
+                padding: 6px;
+                border-bottom: 1px solid #f1f5f9;
+            }
+        """)
+
         self.tabela.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
 
         self.tabela.setColumnWidth(0, 60)
@@ -290,6 +534,54 @@ class Motoristas(QWidget):
 
         botao_detalhes = QPushButton("Ver detalhes")
         botao_editar = QPushButton("Editar")
+
+        botao_detalhes.setMinimumHeight(36)
+        botao_detalhes.setMinimumWidth(120)
+
+        botao_detalhes.setStyleSheet("""
+            QPushButton {
+                background-color: #f1f5f9;
+                color: #334155;
+                border: 1px solid #cbd5e1;
+                border-radius: 8px;
+                padding: 7px 16px;
+                font-size: 13px;
+                font-weight: 700;
+            }
+
+            QPushButton:hover {
+                background-color: #e2e8f0;
+                border-color: #94a3b8;
+            }
+
+            QPushButton:pressed {
+                background-color: #cbd5e1;
+            }
+        """)
+
+        botao_editar.setMinimumHeight(36)
+        botao_editar.setMinimumWidth(100)
+
+        botao_editar.setStyleSheet("""
+            QPushButton {
+                background-color: #eff6ff;
+                color: #2563eb;
+                border: 1px solid #bfdbfe;
+                border-radius: 8px;
+                padding: 7px 16px;
+                font-size: 13px;
+                font-weight: 700;
+            }
+
+            QPushButton:hover {
+                background-color: #dbeafe;
+                border-color: #93c5fd;
+            }
+
+            QPushButton:pressed {
+                background-color: #bfdbfe;
+            }
+        """)
 
         botao_detalhes.clicked.connect(self.ver_detalhes)
         botao_editar.clicked.connect(self.editar_motorista)
@@ -553,8 +845,6 @@ class Motoristas(QWidget):
 
             botao_abrir_cnh = QPushButton("Abrir CNH")
 
-
-
             botao_abrir_cnh = QPushButton("Abrir CNH")
 
             documento_cnh = (
@@ -566,11 +856,7 @@ class Motoristas(QWidget):
                 .first()
             )
 
-            nome_cnh = (
-                documento_cnh.nome_arquivo
-                if documento_cnh
-                else "Não anexada"
-            )
+            nome_cnh = documento_cnh.nome_arquivo if documento_cnh else "Não anexada"
 
             def abrir_cnh():
                 if not documento_cnh:
