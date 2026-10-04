@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QGridLayout,
     QDialog,
+    QTabWidget,
     QFormLayout,
 )
 
@@ -44,6 +45,60 @@ class Motoristas(QWidget):
 
         layout_principal.addWidget(titulo)
 
+        abas = QTabWidget()
+
+        aba_cadastro = QWidget()
+        aba_motoristas = QWidget()
+
+        layout_aba_cadastro = QVBoxLayout(aba_cadastro)
+        layout_aba_cadastro.setContentsMargins(12, 12, 12, 12)
+        layout_aba_cadastro.setSpacing(14)
+
+        layout_aba_motoristas = QVBoxLayout(aba_motoristas)
+        layout_aba_motoristas.setContentsMargins(12, 12, 12, 12)
+        layout_aba_motoristas.setSpacing(14)
+
+        abas.setDocumentMode(True)
+
+        abas.setStyleSheet("""
+            QTabWidget::pane {
+                border: 1px solid #e2e8f0;
+                background: #ffffff;
+                border-radius: 12px;
+                top: -1px;
+            }
+
+            QTabBar::tab {
+                background: #f8fafc;
+                color: #64748b;
+                border: 1px solid #e2e8f0;
+                border-bottom: none;
+                padding: 10px 22px;
+                min-width: 150px;
+                font-size: 14px;
+                font-weight: 700;
+            }
+
+            QTabBar::tab:first {
+                border-top-left-radius: 8px;
+            }
+
+            QTabBar::tab:last {
+                border-top-right-radius: 8px;
+            }
+
+            QTabBar::tab:hover {
+                background: #f1f5f9;
+                color: #334155;
+            }
+
+            QTabBar::tab:selected {
+                background: #ffffff;
+                color: #2563eb;
+                border-bottom: 3px solid #2563eb;
+            }
+        """)
+
         # =========================
         # CADASTRO
         # =========================
@@ -64,9 +119,9 @@ class Motoristas(QWidget):
                 subcontrol-origin: margin;
                 left: 16px;
                 padding: 0 8px;
-                color: #1e293b;
+                color: #2563eb;
                 background-color: #ffffff;
-                font-size: 16px;
+                font-size: 17px;
                 font-weight: 700;
             }
         """)
@@ -74,6 +129,14 @@ class Motoristas(QWidget):
         layout_cadastro = QVBoxLayout()
 
         grade_cards = QGridLayout()
+
+        grade_cards.setContentsMargins(0, 0, 0, 0)
+        grade_cards.setHorizontalSpacing(14)
+        grade_cards.setVerticalSpacing(14)
+
+        grade_cards.setColumnStretch(0, 1)
+        grade_cards.setColumnStretch(1, 1)
+        grade_cards.setColumnStretch(2, 1)
 
         card_pessoais = QGroupBox("Dados Pessoais")
         card_pessoais.setObjectName("cardPessoais")
@@ -93,7 +156,7 @@ class Motoristas(QWidget):
                 padding: 0 6px;
                 color: #2563eb;
                 background-color: #f8fafc;
-                font-size: 15px;
+                font-size: 16px;
                 font-weight: 700;
             }
         """)
@@ -208,7 +271,7 @@ class Motoristas(QWidget):
                 padding: 0 6px;
                 color: #0f766e;
                 background-color: #f8fafc;
-                font-size: 15px;
+                font-size: 16px;
                 font-weight: 700;
             }
         """)
@@ -295,6 +358,13 @@ class Motoristas(QWidget):
             2,
         )
 
+        for card in (
+            card_pessoais,
+            card_habilitacao,
+            card_endereco,
+        ):
+            card.setMinimumHeight(250)
+
         layout_cadastro.addLayout(grade_cards)
 
         # =========================
@@ -320,7 +390,7 @@ class Motoristas(QWidget):
                 padding: 0 6px;
                 color: #7c3aed;
                 background-color: #f8fafc;
-                font-size: 15px;
+                font-size: 16px;
                 font-weight: 700;
             }
         """)
@@ -462,7 +532,7 @@ class Motoristas(QWidget):
         layout_cadastro.addLayout(linha_botao)
 
         card_cadastro.setLayout(layout_cadastro)
-        layout_principal.addWidget(card_cadastro)
+        layout_aba_cadastro.addWidget(card_cadastro)
 
         # =========================
         # TABELA
@@ -590,9 +660,22 @@ class Motoristas(QWidget):
         linha_acoes.addWidget(botao_editar)
         linha_acoes.addStretch()
 
-        layout_principal.addLayout(linha_acoes)
+        layout_aba_motoristas.addLayout(linha_acoes)
 
-        layout_principal.addWidget(self.tabela)
+        layout_aba_motoristas.addWidget(self.tabela)
+
+        linha_acoes.addStretch()
+
+        layout_aba_motoristas.addLayout(linha_acoes)
+
+        layout_aba_motoristas.addWidget(self.tabela)
+
+        abas.addTab(aba_cadastro, "Cadastrar motorista")
+        abas.addTab(aba_motoristas, "Motoristas cadastrados")
+
+        layout_principal.addWidget(abas)
+
+        self.setLayout(layout_principal)
 
         self.setLayout(layout_principal)
 
