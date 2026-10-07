@@ -21,7 +21,8 @@ from PySide6.QtWidgets import (
 
 from banco.sessao import SessionLocal
 from banco.modelos import Motorista, DocumentoMotorista
-from PySide6.QtCore import QDate
+from PySide6.QtCore import QDate, Qt
+from PySide6.QtGui import QColor
 import os
 import shutil
 
@@ -161,8 +162,8 @@ class Motoristas(QWidget):
                 border-radius: 7px;
                 font-size: 30px;
                 font-weight: bold;
-                background-color: #dbeafe;
-                color: #1d4ed8;
+                background-color: #DCFCE7;
+                color: #15803d;
             }
         """)
 
@@ -282,7 +283,7 @@ class Motoristas(QWidget):
                 border-radius: 7px;
                 font-size: 15px;
                 font-weight: bold;
-                background-color: #dcfce7;
+                background-color: #DCFCE7;
                 color: #15803d;
             }
         """)
@@ -433,8 +434,8 @@ class Motoristas(QWidget):
                 border-radius: 7px;
                 font-size: 20px;
                 font-weight: bold;
-                background-color: #ffedd5;
-                color: #c2410c;
+                background-color: #DCFCE7;
+                color: #15803d;
             }
         """)
 
@@ -619,8 +620,8 @@ class Motoristas(QWidget):
         titulo_cadastrados = QLabel("Motoristas cadastrados")
         titulo_cadastrados.setStyleSheet("""
             QLabel {
-                color: #1e293b;
-                font-size: 20px;
+                color: #0f172a;
+                font-size: 22px;
                 font-weight: 700;
                 background: transparent;
                 border: none;
@@ -628,20 +629,40 @@ class Motoristas(QWidget):
         """)
 
         descricao_cadastrados = QLabel(
-            "Consulte, edite e visualize os motoristas cadastrados no sistema."
+            "Consulte os motoristas cadastrados, visualize seus dados ou edite suas informações."
         )
         descricao_cadastrados.setStyleSheet("""
             QLabel {
-                color: #64748b;
-                font-size: 13px;
+                color: #334155;
+                font-size: 15px;
                 font-weight: 500;
                 background: transparent;
                 border: none;
             }
         """)
 
-        layout_aba_motoristas.addWidget(titulo_cadastrados)
-        layout_aba_motoristas.addWidget(descricao_cadastrados)
+        cabecalho_motoristas = QGroupBox()
+        cabecalho_motoristas.setObjectName("cabecalhoMotoristas")
+
+        cabecalho_motoristas.setStyleSheet("""
+            QGroupBox#cabecalhoMotoristas {
+                background-color: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-left: 4px solid #2563eb;
+                border-radius: 12px;
+                padding: 14px 16px;
+                margin: 0;
+            }
+        """)
+
+        layout_cabecalho = QVBoxLayout(cabecalho_motoristas)
+        layout_cabecalho.setContentsMargins(8, 2, 8, 2)
+        layout_cabecalho.setSpacing(4)
+
+        layout_cabecalho.addWidget(titulo_cadastrados)
+        layout_cabecalho.addWidget(descricao_cadastrados)
+
+        layout_aba_motoristas.addWidget(cabecalho_motoristas)
 
         self.tabela = QTableWidget()
 
@@ -663,6 +684,8 @@ class Motoristas(QWidget):
 
         self.tabela.setEditTriggers(QTableWidget.NoEditTriggers)
 
+        self.tabela.setFocusPolicy(Qt.StrongFocus)
+
         self.tabela.setAlternatingRowColors(True)
         self.tabela.setShowGrid(False)
 
@@ -671,34 +694,40 @@ class Motoristas(QWidget):
 
         self.tabela.setStyleSheet("""
             QTableWidget {
-                background-color: #ffffff;
-                alternate-background-color: #f8fafc;
-                border: 1px solid #e2e8f0;
-                border-radius: 10px;
-                gridline-color: #e2e8f0;
-                color: #1e293b;
-                font-size: 13px;
-                selection-background-color: #dbeafe;
-                selection-color: #1e3a8a;
+                border: 1px solid #d9dee7;
+                border-radius: 8px;
+                gridline-color: #e5e7eb;
+                color: #000000;
+                font-size: 15px;
+                font-weight: 600;
+                selection-color: #000000;
             }
 
             QHeaderView::section {
                 background-color: #f1f5f9;
-                color: #334155;
+                color: #374151;
                 border: none;
-                border-bottom: 1px solid #cbd5e1;
-                padding: 8px;
+                border-bottom: 1px solid #d9dee7;
+                padding: 8px 10px;
                 font-size: 13px;
                 font-weight: 700;
             }
 
-            QTableWidget::item {
-                padding: 6px;
-                border-bottom: 1px solid #f1f5f9;
+            QHeaderView::section:hover {
+                background-color: #e5e7eb;
+            }
+
+            QTableWidget::item:selected {
+                background-color: #dbeafe;
             }
         """)
 
         self.tabela.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+        self.tabela.horizontalHeader().setSectionResizeMode(
+            1,
+            QHeaderView.Stretch,
+        )
+        self.tabela.horizontalHeader().setMinimumHeight(42)
 
         self.tabela.setColumnWidth(0, 60)
         self.tabela.setColumnWidth(1, 300)
@@ -706,9 +735,57 @@ class Motoristas(QWidget):
         self.tabela.setColumnWidth(3, 150)
         self.tabela.setColumnWidth(4, 120)
         linha_acoes = QHBoxLayout()
-
+        linha_acoes.setSpacing(8)
         botao_detalhes = QPushButton("Ver detalhes")
+        botao_detalhes.setMinimumWidth(130)
+        botao_detalhes.setMinimumHeight(36)
+
+        botao_detalhes.setStyleSheet("""
+            QPushButton {
+                background-color: #eff6ff;
+                color: #1d4ed8;
+                border: 1px solid #bfdbfe;
+                border-radius: 8px;
+                padding: 7px 16px;
+                font-size: 13px;
+                font-weight: 700;
+            }
+
+            QPushButton:hover {
+                background-color: #dbeafe;
+                border-color: #93c5fd;
+                color: #1e40af;
+            }
+
+            QPushButton:pressed {
+                background-color: #bfdbfe;
+            }
+        """)
+
         botao_editar = QPushButton("Editar")
+        botao_editar.setMinimumWidth(100)
+        botao_editar.setMinimumHeight(36)
+
+        botao_editar.setStyleSheet("""
+            QPushButton {
+                background-color: #f1f5f9;
+                color: #374151;
+                border: 1px solid #cbd5e1;
+                border-radius: 8px;
+                padding: 7px 16px;
+                font-size: 13px;
+                font-weight: 700;
+            }
+
+            QPushButton:hover {
+                background-color: #e2e8f0;
+                border-color: #94a3b8;
+            }
+
+            QPushButton:pressed {
+                background-color: #cbd5e1;
+            }
+        """)
 
         botao_detalhes.setMinimumHeight(36)
         botao_detalhes.setMinimumWidth(120)
@@ -760,6 +837,9 @@ class Motoristas(QWidget):
 
         botao_detalhes.clicked.connect(self.ver_detalhes)
         botao_editar.clicked.connect(self.editar_motorista)
+        self.tabela.cellDoubleClicked.connect(
+            lambda linha, coluna: self.editar_motorista()
+        )
 
         linha_acoes.addWidget(botao_detalhes)
         linha_acoes.addWidget(botao_editar)
@@ -1027,8 +1107,6 @@ class Motoristas(QWidget):
 
             botao_abrir_cnh = QPushButton("Abrir CNH")
 
-            botao_abrir_cnh = QPushButton("Abrir CNH")
-
             documento_cnh = (
                 sessao.query(DocumentoMotorista)
                 .filter(
@@ -1178,7 +1256,15 @@ class Motoristas(QWidget):
             dialogo.setWindowTitle("Editar Motorista")
             dialogo.resize(900, 550)
 
+            dialogo.setStyleSheet("""
+                QDialog {
+                    background-color: #f8fafc;
+                }
+            """)
+
             layout_principal = QVBoxLayout(dialogo)
+            layout_principal.setContentsMargins(24, 20, 24, 20)
+            layout_principal.setSpacing(16)
 
             titulo = QLabel("Editar Motorista")
             titulo.setStyleSheet("""
@@ -1335,6 +1421,47 @@ class Motoristas(QWidget):
 
             card_endereco.setLayout(layout_endereco)
 
+            for formulario in (
+                layout_pessoais,
+                layout_habilitacao,
+                layout_endereco,
+            ):
+                for linha in range(formulario.rowCount()):
+                    item_label = formulario.itemAt(
+                        linha,
+                        QFormLayout.LabelRole,
+                    )
+
+                    if item_label and item_label.widget():
+                        item_label.widget().setStyleSheet("""
+                            font-weight: 700;
+                            color: #334155;
+                        """)
+
+            for card in (card_pessoais, card_habilitacao, card_endereco):
+                card.setStyleSheet("""
+                    QGroupBox {
+                        background-color: #ffffff;
+                        border: 1px solid #e2e8f0;
+                        border-radius: 12px;
+                        margin-top: 12px;
+                        padding: 14px;
+                        color: #0f172a;
+                        font-size: 16px;
+                        font-weight: 700;
+                    }
+
+                    QGroupBox::title {
+                        subcontrol-origin: margin;
+                        left: 14px;
+                        padding: 0 8px;
+                        background-color: #f8fafc;
+                        color: #0f172a;
+                        font-size: 16px;
+                        font-weight: 700;
+                    }
+                """)
+
             # =========================
             # CARDS
             # =========================
@@ -1357,7 +1484,54 @@ class Motoristas(QWidget):
             linha_botoes.addStretch()
 
             botao_cancelar = QPushButton("Cancelar")
+            botao_cancelar.setMinimumWidth(120)
+            botao_cancelar.setMinimumHeight(40)
+
+            botao_cancelar.setStyleSheet("""
+                QPushButton {
+                    background-color: #ffffff;
+                    color: #475569;
+                    border: 1px solid #cbd5e1;
+                    border-radius: 8px;
+                    padding: 8px 20px;
+                    font-size: 14px;
+                    font-weight: 700;
+                }
+
+                QPushButton:hover {
+                    background-color: #f1f5f9;
+                    border-color: #94a3b8;
+                    color: #1e293b;
+                }
+
+                QPushButton:pressed {
+                    background-color: #e2e8f0;
+                }
+            """)
             botao_salvar = QPushButton("Salvar alterações")
+            botao_salvar.setMinimumWidth(160)
+            botao_salvar.setMinimumHeight(40)
+
+            botao_salvar.setStyleSheet("""
+                QPushButton {
+                    background-color: #2563eb;
+                    color: #ffffff;
+                    border: 1px solid #2563eb;
+                    border-radius: 8px;
+                    padding: 8px 20px;
+                    font-size: 14px;
+                    font-weight: 700;
+                }
+
+                QPushButton:hover {
+                    background-color: #1d4ed8;
+                    border-color: #1d4ed8;
+                }
+
+                QPushButton:pressed {
+                    background-color: #1e40af;
+                }
+            """)
 
             botao_cancelar.clicked.connect(dialogo.reject)
 
@@ -1538,10 +1712,28 @@ class Motoristas(QWidget):
                 ]
 
                 for coluna, valor in enumerate(dados):
+                    item = QTableWidgetItem(str(valor))
+
+                    if linha % 2 == 0:
+                        item.setBackground(QColor("#eff6ff"))
+                    else:
+                        item.setBackground(QColor("#ffffff"))
+
+                    if coluna in [0, 2, 3, 4]:
+                        item.setTextAlignment(Qt.AlignCenter)
+
+                    if coluna == 4:
+                        if motorista.status == "Ativo":
+                            item.setBackground(QColor("#f0fdf4"))
+                            item.setForeground(QColor("#15803d"))
+                        else:
+                            item.setBackground(QColor("#fef2f2"))
+                            item.setForeground(QColor("#b91c1c"))
+
                     self.tabela.setItem(
                         linha,
                         coluna,
-                        QTableWidgetItem(str(valor)),
+                        item,
                     )
 
         finally:

@@ -903,24 +903,25 @@ class Fretes(QWidget):
         layout_aba_gestao.setSpacing(10)
 
         abas = QTabWidget()
-
         abas.setDocumentMode(True)
-        abas.setUsesScrollButtons(False)
-        abas.setMinimumHeight(0)
         abas.setStyleSheet("""
             QTabBar::tab {
-                min-width: 145px;
-                min-height: 40px;
-                padding: 7px 18px;
-                margin-right: 5px;
-                border: 1px solid #d9dee7;
+                background: #f8fafc;
+                color: #64748b;
+                border: 1px solid #e2e8f0;
                 border-bottom: none;
-                border-top-left-radius: 8px;
-                border-top-right-radius: 8px;
-                background-color: #f1f3f5;
-                color: #374151;
-                font-size: 15px;
+                padding: 10px 22px;
+                min-width: 150px;
+                font-size: 14px;
                 font-weight: 700;
+            }
+
+            QTabBar::tab:first {
+                border-top-left-radius: 8px;
+            }
+
+            QTabBar::tab:last {
+                border-top-right-radius: 8px;
             }
 
             QTabBar::tab:hover {
