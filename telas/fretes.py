@@ -1194,25 +1194,26 @@ class Fretes(QWidget):
                 alternate-background-color: #f8fafc;
                 border: 1px solid #d9dee7;
                 border-radius: 8px;
-                gridline-color: #e5e7eb;
-                color: #202124;
+                gridline-color: #d9dee7;
+                color: #000000;
                 font-size: 13px;
-                selection-background-color: #dbeafe;
-                selection-color: #1e3a8a;
+                font-weight: 600;
+                selection-background-color: #bfdbfe;
+                selection-color: #000000;
             }
 
-            QTableWidget::item {
-                padding: 6px;
-                border: none;
+            QTableWidget::item:hover {
+                background-color: #bfdbfe;
+                color: #000000;
             }
 
             QTableWidget::item:selected {
-                background-color: #dbeafe;
-                color: #1e3a8a;
+                background-color: #bfdbfe;
+                color: #000000;
             }
 
             QHeaderView::section {
-                background-color: #f1f5f9;
+                background-color: #edf2f7;
                 color: #374151;
                 padding: 8px 10px;
                 border: none;
@@ -1471,31 +1472,41 @@ class Fretes(QWidget):
         self.tabela_comissoes.setColumnWidth(6, 250)
         self.tabela_comissoes.setStyleSheet("""
             QTableWidget {
-                border: 1px solid #dfe3e8;
-                border-radius: 8px;
-                gridline-color: #e6e9ed;
-                background-color: white;
+                background-color: #ffffff;
                 alternate-background-color: #f8fafc;
+                border: 1px solid #d9dee7;
+                border-radius: 8px;
+                gridline-color: #d9dee7;
+                color: #000000;
                 font-size: 13px;
+                font-weight: 600;
+                selection-background-color: #bfdbfe;
+                selection-color: #000000;
             }
 
             QTableWidget::item {
                 padding: 6px;
+                border: none;
+            }
+
+            QTableWidget::item:hover {
+                background-color: #bfdbfe;
+                color: #000000;
             }
 
             QTableWidget::item:selected {
-                background-color: #e8f0fe;
-                color: #1f2937;
+                background-color: #bfdbfe;
+                color: #000000;
             }
 
             QHeaderView::section {
-                background-color: #f1f5f9;
-                color: #374151;
+                background-color: #edf2f7;
+                color: #334155;
                 font-weight: bold;
                 font-size: 12px;
                 padding: 10px;
                 border: none;
-                border-bottom: 1px solid #dfe3e8;
+                border-bottom: 1px solid #d9dee7;
             }
         """)
 
@@ -2581,6 +2592,11 @@ class Fretes(QWidget):
 
             if mostrar:
                 total_visiveis += 1
+
+                self.tabela_fretes.setVerticalHeaderItem(
+                    linha,
+                    QTableWidgetItem(str(total_visiveis)),
+                )
 
                 if item_frete:
                     valor = (

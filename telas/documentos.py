@@ -29,11 +29,14 @@ class Documentos(QWidget):
         layout_principal.setSpacing(14)
 
         titulo = QLabel("Documentos")
+
         titulo.setStyleSheet("""
             QLabel {
                 color: #0f172a;
                 font-size: 26px;
                 font-weight: 700;
+                padding: 0 0 8px 10px;
+                border-left: 5px solid #2563eb;
             }
         """)
 

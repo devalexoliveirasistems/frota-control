@@ -1,3 +1,4 @@
+import os
 from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -9,13 +10,24 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QLineEdit,
     QComboBox,
+    QStyle,
     QHeaderView,
+    QDialog,
+    QFormLayout,
+    QGroupBox,
+    QScrollArea,
 )
-from PySide6.QtCore import QEvent, Qt
-from PySide6.QtGui import QColor
+from PySide6.QtCore import QEvent, Qt, QSize, QUrl
+from PySide6.QtGui import QColor, QIcon, QDesktopServices
 
 from banco.sessao import SessionLocal
-from banco.modelos import Veiculo
+from banco.modelos import (
+    Veiculo,
+    Carreta,
+    Dolly,
+    Composicao,
+    DocumentoVeiculo,
+)
 from telas.formulario_veiculo import FormularioVeiculo
 
 
@@ -58,9 +70,18 @@ class Frota(QWidget):
         linha_botoes.setSpacing(10)
 
         botao_novo = QPushButton("Novo veículo")
+        botao_novo.setIcon(QIcon("recursos/icones/mais.svg"))
+        botao_novo.setIconSize(QSize(20, 20))
         botao_editar = QPushButton("Editar veículo")
+        botao_detalhes = QPushButton("Ver detalhes")
+        botao_editar.setIcon(QIcon("recursos/icones/editar.svg"))
+        botao_editar.setIconSize(QSize(22, 22))
         botao_excluir = QPushButton("Excluir veículos")
+        botao_excluir.setIcon(QIcon("recursos/icones/lixeira.svg"))
+        botao_excluir.setIconSize(QSize(20, 20))
         botao_atualizar = QPushButton("Atualizar")
+        botao_atualizar.setIcon(QIcon("recursos/icones/atualizar.svg"))
+        botao_atualizar.setIconSize(QSize(22, 22))
 
         self._estilizar_botao(
             botao_novo,
@@ -70,6 +91,16 @@ class Frota(QWidget):
             borda="#2563eb",
             hover="#1d4ed8",
             pressionado="#1e40af",
+        )
+
+        self._estilizar_botao(
+            botao_detalhes,
+            largura=135,
+            fundo="#eff6ff",
+            texto="#1d4ed8",
+            borda="#93c5fd",
+            hover="#dbeafe",
+            pressionado="#bfdbfe",
         )
 
         self._estilizar_botao(
@@ -104,6 +135,7 @@ class Frota(QWidget):
 
         linha_botoes.addWidget(botao_novo)
         linha_botoes.addWidget(botao_editar)
+        linha_botoes.addWidget(botao_detalhes)
         linha_botoes.addWidget(botao_excluir)
         linha_botoes.addWidget(botao_atualizar)
         linha_botoes.addStretch()
@@ -130,8 +162,8 @@ class Frota(QWidget):
                 border: 1px solid #cbd5e1;
                 border-radius: 7px;
                 padding: 7px 12px;
-                font-size: 13px;
-                font-weight: 500;
+                font-size: 14px;
+                font-weight: 600;
             }
 
             QLineEdit:hover {
@@ -167,17 +199,6 @@ class Frota(QWidget):
             ]
         )
 
-        self.filtro_composicao = QComboBox()
-        self.filtro_composicao.addItems(
-            [
-                "Todas as composições",
-                "Com carreta",
-                "Sem carreta",
-                "Com Dolly",
-                "Sem Dolly",
-            ]
-        )
-
         estilo_combo = """
             QComboBox {
                 background-color: #ffffff;
@@ -186,8 +207,8 @@ class Frota(QWidget):
                 border-radius: 7px;
                 padding: 6px 10px;
                 min-height: 36px;
-                font-size: 13px;
-                font-weight: 500;
+                font-size: 14px;
+                font-weight: 600;
             }
 
             QComboBox:hover {
@@ -202,32 +223,31 @@ class Frota(QWidget):
         for campo in (
             self.filtro_tipo,
             self.filtro_status,
-            self.filtro_composicao,
         ):
             campo.setStyleSheet(estilo_combo)
 
         self.campo_pesquisa.setMinimumWidth(350)
         self.filtro_tipo.setMinimumWidth(120)
         self.filtro_status.setMinimumWidth(130)
-        self.filtro_composicao.setMinimumWidth(155)
 
         botao_limpar_filtros = QPushButton("Limpar filtros")
+        botao_limpar_filtros.setIcon(QIcon("recursos/icones/limpar_filtros.svg"))
+        botao_limpar_filtros.setIconSize(QSize(18, 18))
         self._estilizar_botao(
             botao_limpar_filtros,
-            largura=120,
-            fundo="#f8fafc",
-            texto="#334155",
-            borda="#cbd5e1",
-            hover="#f1f5f9",
-            pressionado="#e2e8f0",
-            altura=36,
+            largura=145,
+            fundo="#ffffff",
+            texto="#2563eb",
+            borda="#bfdbfe",
+            hover="#eff6ff",
+            pressionado="#dbeafe",
+            altura=38,
             fonte=13,
         )
 
         linha_filtros.addWidget(self.campo_pesquisa, 1)
         linha_filtros.addWidget(self.filtro_tipo)
         linha_filtros.addWidget(self.filtro_status)
-        linha_filtros.addWidget(self.filtro_composicao)
         linha_filtros.addWidget(botao_limpar_filtros)
 
         layout_principal.addLayout(linha_filtros)
@@ -271,7 +291,7 @@ class Frota(QWidget):
                 color: #000000;
                 font-size: 13px;
                 font-weight: 600;
-                selection-background-color: #eff6ff;
+                selection-background-color: #bfdbfe;
                 selection-color: #000000;
             }
 
@@ -312,12 +332,12 @@ class Frota(QWidget):
         botao_atualizar.clicked.connect(self.carregar_veiculos)
         botao_novo.clicked.connect(self.abrir_formulario)
         botao_editar.clicked.connect(self.editar_veiculo)
+        botao_detalhes.clicked.connect(self.ver_detalhes_veiculo)
         botao_excluir.clicked.connect(self.excluir_veiculo)
 
         self.campo_pesquisa.textChanged.connect(self.filtrar_veiculos)
         self.filtro_tipo.currentIndexChanged.connect(self.filtrar_veiculos)
         self.filtro_status.currentIndexChanged.connect(self.filtrar_veiculos)
-        self.filtro_composicao.currentIndexChanged.connect(self.filtrar_veiculos)
         botao_limpar_filtros.clicked.connect(self.limpar_filtros)
 
     def _estilizar_botao(
@@ -421,33 +441,46 @@ class Frota(QWidget):
             texto = "#475569"
             borda = "#cbd5e1"
 
-        etiqueta = QLabel(status_normalizado or "Não informado")
+        container = QWidget()
+        layout_status = QHBoxLayout(container)
+        layout_status.setContentsMargins(0, 0, 0, 0)
+        layout_status.setAlignment(Qt.AlignCenter)
+
+        texto_status = (
+            "Manutenção"
+            if status_normalizado == "Em manutenção"
+            else status_normalizado
+        )
+        etiqueta = QLabel(texto_status or "Não informado")
         etiqueta.setAlignment(Qt.AlignCenter)
+        etiqueta.setFixedHeight(26)
+        etiqueta.setMinimumWidth(88)
+
         etiqueta.setStyleSheet(f"""
             QLabel {{
                 background-color: {fundo};
                 color: {texto};
                 border: 1px solid {borda};
-                border-radius: 10px;
-                padding: 4px 12px;
+                border-radius: 7px;
+                padding: 2px 10px;
                 font-size: 12px;
                 font-weight: 700;
             }}
         """)
 
-        self.tabela.setCellWidget(linha, 7, etiqueta)
+        layout_status.addWidget(etiqueta)
+
+        self.tabela.setCellWidget(linha, 7, container)
 
     def filtrar_veiculos(self):
         texto = self.campo_pesquisa.text().lower().strip()
         tipo = self.filtro_tipo.currentText()
         status = self.filtro_status.currentText()
-        composicao = self.filtro_composicao.currentText()
 
         for linha in range(self.tabela.rowCount()):
             encontrou_texto = True
             encontrou_tipo = True
             encontrou_status = True
-            encontrou_composicao = True
 
             if texto:
                 encontrou_texto = False
@@ -471,17 +504,7 @@ class Frota(QWidget):
                 if not item_status or item_status.text() != status:
                     encontrou_status = False
 
-            # O filtro de composição continua reservado para quando
-            # a estrutura de composição for implementada.
-            if composicao != "Todas as composições":
-                encontrou_composicao = True
-
-            mostrar = (
-                encontrou_texto
-                and encontrou_tipo
-                and encontrou_status
-                and encontrou_composicao
-            )
+            mostrar = encontrou_texto and encontrou_tipo and encontrou_status
 
             self.tabela.setRowHidden(
                 linha,
@@ -492,7 +515,6 @@ class Frota(QWidget):
         self.campo_pesquisa.clear()
         self.filtro_tipo.setCurrentIndex(0)
         self.filtro_status.setCurrentIndex(0)
-        self.filtro_composicao.setCurrentIndex(0)
         self.filtrar_veiculos()
 
     def abrir_formulario(self):
@@ -500,6 +522,424 @@ class Frota(QWidget):
 
         if formulario.exec():
             self.carregar_veiculos()
+
+    def ver_detalhes_veiculo(self):
+        linha = self.tabela.currentRow()
+
+        if linha < 0:
+            QMessageBox.warning(
+                self,
+                "Nenhum veículo selecionado",
+                "Selecione um veículo para ver os detalhes.",
+            )
+            return
+
+        item_codigo = self.tabela.item(linha, 0)
+
+        if not item_codigo:
+            return
+
+        id_veiculo = item_codigo.data(Qt.UserRole)
+
+        if not id_veiculo:
+            return
+
+        sessao = SessionLocal()
+
+        try:
+            veiculo = sessao.get(Veiculo, id_veiculo)
+
+            if not veiculo:
+                QMessageBox.warning(
+                    self,
+                    "Veículo não encontrado",
+                    "Não foi possível localizar este veículo.",
+                )
+                return
+
+            dialogo = QDialog(self)
+            dialogo.setWindowTitle(f"Detalhes do veículo — {veiculo.placa}")
+            dialogo.resize(680, 720)
+            dialogo.setMinimumSize(560, 450)
+
+            layout_dialogo = QVBoxLayout(dialogo)
+
+            area_rolagem = QScrollArea()
+            area_rolagem.setWidgetResizable(True)
+
+            conteudo = QWidget()
+            layout_conteudo = QVBoxLayout(conteudo)
+
+            area_rolagem.setWidget(conteudo)
+            layout_dialogo.addWidget(area_rolagem)
+
+            def adicionar_unidade(titulo, unidade, campo_fk):
+                grupo = QGroupBox(titulo)
+                formulario = QFormLayout(grupo)
+
+                if unidade is None:
+                    formulario.addRow(QLabel("Nenhuma unidade vinculada."))
+                    layout_conteudo.addWidget(grupo)
+                    return
+
+                if hasattr(unidade, "codigo_frota"):
+                    formulario.addRow(
+                        "Código da frota:",
+                        QLabel(str(unidade.codigo_frota)),
+                    )
+
+                formulario.addRow(
+                    "Placa:",
+                    QLabel(str(unidade.placa)),
+                )
+                formulario.addRow(
+                    "Marca:",
+                    QLabel(str(unidade.marca)),
+                )
+                formulario.addRow(
+                    "Modelo:",
+                    QLabel(str(unidade.modelo)),
+                )
+                formulario.addRow(
+                    "Ano:",
+                    QLabel(str(unidade.ano)),
+                )
+                formulario.addRow(
+                    "Tipo:",
+                    QLabel(str(unidade.tipo)),
+                )
+                formulario.addRow(
+                    "Status:",
+                    QLabel(str(unidade.status)),
+                )
+
+                if hasattr(unidade, "configuracao"):
+                    formulario.addRow(
+                        "Configuração:",
+                        QLabel(str(unidade.configuracao or "Sem composição")),
+                    )
+
+                documento = (
+                    sessao.query(DocumentoVeiculo)
+                    .filter(getattr(DocumentoVeiculo, campo_fk) == unidade.id)
+                    .first()
+                )
+
+                if documento:
+                    caminho = documento.caminho_arquivo
+
+                    if os.path.isfile(caminho):
+                        botao_abrir = QPushButton(
+                            f"Abrir documento: {documento.nome_arquivo}"
+                        )
+                        botao_abrir.clicked.connect(
+                            lambda checked=False, c=caminho: QDesktopServices.openUrl(
+                                QUrl.fromLocalFile(c)
+                            )
+                        )
+                        formulario.addRow("Documento:", botao_abrir)
+                    else:
+                        formulario.addRow(
+                            "Documento:",
+                            QLabel(
+                                f"{documento.nome_arquivo} " "(arquivo não encontrado)"
+                            ),
+                        )
+                else:
+                    formulario.addRow(
+                        "Documento:",
+                        QLabel("Nenhum documento anexado."),
+                    )
+
+                layout_conteudo.addWidget(grupo)
+
+            adicionar_unidade(
+                "Cavalo mecânico",
+                veiculo,
+                "veiculo_id",
+            )
+
+            composicao = (
+                sessao.query(Composicao)
+                .filter(
+                    Composicao.cavalo_id == veiculo.id,
+                    Composicao.ativa.is_(True),
+                )
+                .first()
+            )
+
+            if composicao:
+                grupo_configuracao = QGroupBox("Composição rodoviária")
+                formulario_configuracao = QFormLayout(grupo_configuracao)
+                formulario_configuracao.addRow(
+                    "Configuração:",
+                    QLabel(composicao.nome),
+                )
+                layout_conteudo.addWidget(grupo_configuracao)
+
+                if composicao.carreta_1_id:
+                    carreta_1 = sessao.get(
+                        Carreta,
+                        composicao.carreta_1_id,
+                    )
+                    adicionar_unidade(
+                        "1ª carreta",
+                        carreta_1,
+                        "carreta_id",
+                    )
+
+                if composicao.dolly_id:
+                    dolly = sessao.get(
+                        Dolly,
+                        composicao.dolly_id,
+                    )
+                    adicionar_unidade(
+                        "Dolly",
+                        dolly,
+                        "dolly_id",
+                    )
+
+                if composicao.carreta_2_id:
+                    carreta_2 = sessao.get(
+                        Carreta,
+                        composicao.carreta_2_id,
+                    )
+                    adicionar_unidade(
+                        "2ª carreta",
+                        carreta_2,
+                        "carreta_id",
+                    )
+            else:
+                layout_conteudo.addWidget(
+                    QLabel("Este veículo não possui composição registrada.")
+                )
+
+            layout_conteudo.addStretch()
+
+            botao_fechar = QPushButton("Fechar")
+            botao_fechar.clicked.connect(dialogo.accept)
+            layout_dialogo.addWidget(botao_fechar)
+
+            dialogo.exec()
+
+        except Exception as erro:
+            QMessageBox.critical(
+                self,
+                "Erro ao carregar detalhes",
+                f"Não foi possível carregar os detalhes.\n\n{erro}",
+            )
+
+        finally:
+            sessao.close()
+
+    def ver_detalhes_veiculo(self):
+        linha = self.tabela.currentRow()
+
+        if linha < 0:
+            QMessageBox.warning(
+                self,
+                "Nenhum veículo selecionado",
+                "Selecione um veículo para ver os detalhes.",
+            )
+            return
+
+        item_codigo = self.tabela.item(linha, 0)
+
+        if not item_codigo:
+            return
+
+        id_veiculo = item_codigo.data(Qt.UserRole)
+
+        if not id_veiculo:
+            return
+
+        sessao = SessionLocal()
+
+        try:
+            veiculo = sessao.get(Veiculo, id_veiculo)
+
+            if not veiculo:
+                QMessageBox.warning(
+                    self,
+                    "Veículo não encontrado",
+                    "Não foi possível localizar este veículo.",
+                )
+                return
+
+            dialogo = QDialog(self)
+            dialogo.setWindowTitle(f"Detalhes do veículo — {veiculo.placa}")
+            dialogo.resize(680, 720)
+            dialogo.setMinimumSize(560, 450)
+
+            layout_dialogo = QVBoxLayout(dialogo)
+
+            area_rolagem = QScrollArea()
+            area_rolagem.setWidgetResizable(True)
+
+            conteudo = QWidget()
+            layout_conteudo = QVBoxLayout(conteudo)
+
+            area_rolagem.setWidget(conteudo)
+            layout_dialogo.addWidget(area_rolagem)
+
+            def adicionar_unidade(titulo, unidade, campo_fk):
+                grupo = QGroupBox(titulo)
+                formulario = QFormLayout(grupo)
+
+                if unidade is None:
+                    formulario.addRow(QLabel("Nenhuma unidade vinculada."))
+                    layout_conteudo.addWidget(grupo)
+                    return
+
+                if hasattr(unidade, "codigo_frota"):
+                    formulario.addRow(
+                        "Código da frota:",
+                        QLabel(str(unidade.codigo_frota)),
+                    )
+
+                formulario.addRow(
+                    "Placa:",
+                    QLabel(str(unidade.placa)),
+                )
+                formulario.addRow(
+                    "Marca:",
+                    QLabel(str(unidade.marca)),
+                )
+                formulario.addRow(
+                    "Modelo:",
+                    QLabel(str(unidade.modelo)),
+                )
+                formulario.addRow(
+                    "Ano:",
+                    QLabel(str(unidade.ano)),
+                )
+                formulario.addRow(
+                    "Tipo:",
+                    QLabel(str(unidade.tipo)),
+                )
+                formulario.addRow(
+                    "Status:",
+                    QLabel(str(unidade.status)),
+                )
+
+                if hasattr(unidade, "configuracao"):
+                    formulario.addRow(
+                        "Configuração:",
+                        QLabel(str(unidade.configuracao or "Sem composição")),
+                    )
+
+                documento = (
+                    sessao.query(DocumentoVeiculo)
+                    .filter(getattr(DocumentoVeiculo, campo_fk) == unidade.id)
+                    .first()
+                )
+
+                if documento:
+                    caminho = documento.caminho_arquivo
+
+                    if os.path.isfile(caminho):
+                        botao_abrir = QPushButton(
+                            f"Abrir documento: {documento.nome_arquivo}"
+                        )
+                        botao_abrir.clicked.connect(
+                            lambda checked=False, c=caminho: QDesktopServices.openUrl(
+                                QUrl.fromLocalFile(c)
+                            )
+                        )
+                        formulario.addRow("Documento:", botao_abrir)
+                    else:
+                        formulario.addRow(
+                            "Documento:",
+                            QLabel(
+                                f"{documento.nome_arquivo} " "(arquivo não encontrado)"
+                            ),
+                        )
+                else:
+                    formulario.addRow(
+                        "Documento:",
+                        QLabel("Nenhum documento anexado."),
+                    )
+
+                layout_conteudo.addWidget(grupo)
+
+            adicionar_unidade(
+                "Cavalo mecânico",
+                veiculo,
+                "veiculo_id",
+            )
+
+            composicao = (
+                sessao.query(Composicao)
+                .filter(
+                    Composicao.cavalo_id == veiculo.id,
+                    Composicao.ativa.is_(True),
+                )
+                .first()
+            )
+
+            if composicao:
+                grupo_configuracao = QGroupBox("Composição rodoviária")
+                formulario_configuracao = QFormLayout(grupo_configuracao)
+                formulario_configuracao.addRow(
+                    "Configuração:",
+                    QLabel(composicao.nome),
+                )
+                layout_conteudo.addWidget(grupo_configuracao)
+
+                if composicao.carreta_1_id:
+                    carreta_1 = sessao.get(
+                        Carreta,
+                        composicao.carreta_1_id,
+                    )
+                    adicionar_unidade(
+                        "1ª carreta",
+                        carreta_1,
+                        "carreta_id",
+                    )
+
+                if composicao.dolly_id:
+                    dolly = sessao.get(
+                        Dolly,
+                        composicao.dolly_id,
+                    )
+                    adicionar_unidade(
+                        "Dolly",
+                        dolly,
+                        "dolly_id",
+                    )
+
+                if composicao.carreta_2_id:
+                    carreta_2 = sessao.get(
+                        Carreta,
+                        composicao.carreta_2_id,
+                    )
+                    adicionar_unidade(
+                        "2ª carreta",
+                        carreta_2,
+                        "carreta_id",
+                    )
+            else:
+                layout_conteudo.addWidget(
+                    QLabel("Este veículo não possui composição registrada.")
+                )
+
+            layout_conteudo.addStretch()
+
+            botao_fechar = QPushButton("Fechar")
+            botao_fechar.clicked.connect(dialogo.accept)
+            layout_dialogo.addWidget(botao_fechar)
+
+            dialogo.exec()
+
+        except Exception as erro:
+            QMessageBox.critical(
+                self,
+                "Erro ao carregar detalhes",
+                f"Não foi possível carregar os detalhes.\n\n{erro}",
+            )
+
+        finally:
+            sessao.close()
 
     def editar_veiculo(self):
         linha = self.tabela.currentRow()

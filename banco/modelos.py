@@ -1,5 +1,5 @@
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy import String, Integer, ForeignKey, Date, Numeric
+from sqlalchemy import String, Integer, ForeignKey, Date, Numeric, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import date
 
@@ -29,7 +29,67 @@ class Veiculo(Base):
 
     tipo: Mapped[str] = mapped_column(String(50), nullable=False)
 
+    configuracao: Mapped[str | None] = mapped_column(String(50), nullable=True)
+
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="Ativo")
+
+
+class Carreta(Base):
+    __tablename__ = "carretas"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    placa: Mapped[str] = mapped_column(String(10), unique=True, nullable=False)
+    marca: Mapped[str] = mapped_column(String(50), nullable=False)
+    modelo: Mapped[str] = mapped_column(String(100), nullable=False)
+    ano: Mapped[int] = mapped_column(Integer, nullable=False)
+    tipo: Mapped[str] = mapped_column(String(50), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False)
+
+
+class Dolly(Base):
+    __tablename__ = "dollys"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    placa: Mapped[str] = mapped_column(String(10), unique=True, nullable=False)
+    marca: Mapped[str] = mapped_column(String(50), nullable=False)
+    modelo: Mapped[str] = mapped_column(String(100), nullable=False)
+    ano: Mapped[int] = mapped_column(Integer, nullable=False)
+    tipo: Mapped[str] = mapped_column(String(50), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False)
+
+
+class Composicao(Base):
+    __tablename__ = "composicoes"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
+    nome: Mapped[str] = mapped_column(String(100), nullable=False)
+
+    cavalo_id: Mapped[int] = mapped_column(
+        ForeignKey("veiculos.id"),
+        nullable=False,
+    )
+
+    carreta_1_id: Mapped[int | None] = mapped_column(
+        ForeignKey("carretas.id"),
+        nullable=True,
+    )
+
+    carreta_2_id: Mapped[int | None] = mapped_column(
+        ForeignKey("carretas.id"),
+        nullable=True,
+    )
+
+    dolly_id: Mapped[int | None] = mapped_column(
+        ForeignKey("dollys.id"),
+        nullable=True,
+    )
+
+    ativa: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=True,
+    )
 
 
 class Motorista(Base):
@@ -109,6 +169,40 @@ class DocumentoMotorista(Base):
     validade: Mapped[date | None] = mapped_column(
         Date,
         nullable=True,
+    )
+
+
+class DocumentoVeiculo(Base):
+    __tablename__ = "documentos_veiculos"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
+    veiculo_id: Mapped[int | None] = mapped_column(
+        ForeignKey("veiculos.id"),
+        nullable=True,
+        unique=True,
+    )
+
+    carreta_id: Mapped[int | None] = mapped_column(
+        ForeignKey("carretas.id"),
+        nullable=True,
+        unique=True,
+    )
+
+    dolly_id: Mapped[int | None] = mapped_column(
+        ForeignKey("dollys.id"),
+        nullable=True,
+        unique=True,
+    )
+
+    nome_arquivo: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+
+    caminho_arquivo: Mapped[str] = mapped_column(
+        String(500),
+        nullable=False,
     )
 
 
@@ -252,3 +346,36 @@ class Usuario(Base):
         nullable=False,
         default=True,
     )
+
+
+class Abastecimento(Base):
+    __tablename__ = "abastecimentos"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
+    data: Mapped[date] = mapped_column(Date, nullable=False)
+
+    veiculo_id: Mapped[int] = mapped_column(ForeignKey("veiculos.id"), nullable=False)
+
+    motorista_id: Mapped[int | None] = mapped_column(
+        ForeignKey("motoristas.id"), nullable=True
+    )
+
+    combustivel: Mapped[str] = mapped_column(String(50), nullable=False)
+
+    posto: Mapped[str] = mapped_column(String(150), nullable=False)
+
+    cidade_posto: Mapped[str] = mapped_column(String(100), nullable=False)
+
+    quilometragem: Mapped[float] = mapped_column(
+        Numeric(12, 1),
+        nullable=False,
+    )
+
+    litros: Mapped[float] = mapped_column(Numeric(12, 3), nullable=False)
+
+    valor_litro: Mapped[float] = mapped_column(Numeric(12, 3), nullable=False)
+
+    valor_total: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
+
+    observacao: Mapped[str | None] = mapped_column(String(500), nullable=True)

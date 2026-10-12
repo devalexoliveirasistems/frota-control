@@ -13,6 +13,8 @@ def cadastrar_veiculo(
     ano: int,
     tipo: str,
     status: str,
+    configuracao: str | None = None,
+    commit: bool = True,
 ):
     resultado = sessao.execute(text("""
             UPDATE controle_frota
@@ -31,11 +33,17 @@ def cadastrar_veiculo(
         modelo=modelo,
         ano=ano,
         tipo=tipo,
+        configuracao=configuracao,
         status=status,
     )
 
     sessao.add(veiculo)
-    sessao.commit()
+
+    if commit:
+        sessao.commit()
+    else:
+        sessao.flush()
+
     sessao.refresh(veiculo)
 
     return veiculo
@@ -50,15 +58,25 @@ def atualizar_veiculo(
     ano: int,
     tipo: str,
     status: str,
+    configuracao: str | None = None,
+    commit: bool = True,
 ):
     veiculo.placa = placa
     veiculo.marca = marca
     veiculo.modelo = modelo
     veiculo.ano = ano
     veiculo.tipo = tipo
+
+    if configuracao is not None:
+        veiculo.configuracao = configuracao
+
     veiculo.status = status
 
-    sessao.commit()
+    if commit:
+        sessao.commit()
+    else:
+        sessao.flush()
+
     sessao.refresh(veiculo)
 
     return veiculo
