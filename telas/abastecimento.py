@@ -3,6 +3,7 @@ from decimal import Decimal
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtWidgets import (
     QWidget,
+    QDialog,
     QVBoxLayout,
     QHBoxLayout,
     QGridLayout,
@@ -379,6 +380,8 @@ class TelaAbastecimento(QWidget):
 
         botao_limpar = QPushButton("Limpar")
         botao_salvar = QPushButton("Registrar abastecimento")
+        self.botao_salvar = botao_salvar
+        self.abastecimento_editando_id = None
 
         botao_limpar.setMinimumHeight(40)
         botao_salvar.setMinimumHeight(40)
@@ -426,6 +429,177 @@ class TelaAbastecimento(QWidget):
             }
         """)
         self.layout_historico.addWidget(titulo_historico)
+
+        # FILTROS DO HISTORICO
+        grupo_filtros = QGroupBox("Filtrar abastecimentos")
+        grupo_filtros.setStyleSheet("""
+            QGroupBox {
+                color: #0f172a;
+                font-size: 17px;
+                font-weight: 800;
+                border: 1px solid #d9dee7;
+                border-radius: 9px;
+                margin-top: 14px;
+                padding-top: 10px;
+            }
+
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 14px;
+                padding: 0 7px;
+            }
+        """)
+        grade_filtros = QGridLayout(grupo_filtros)
+        grade_filtros.setContentsMargins(12, 18, 12, 10)
+        grade_filtros.setHorizontalSpacing(12)
+        grade_filtros.setVerticalSpacing(6)
+
+        rotulo_data_inicial = QLabel("Data inicial")
+        rotulo_data_final = QLabel("Data final")
+        rotulo_placa = QLabel("Placa")
+        rotulo_motorista = QLabel("Motorista")
+
+        for rotulo in (
+            rotulo_data_inicial,
+            rotulo_data_final,
+            rotulo_placa,
+            rotulo_motorista,
+        ):
+            rotulo.setStyleSheet("color: #334155; font-size: 13px; font-weight: 700;")
+
+        self.filtro_data_inicial = QDateEdit()
+        self.filtro_data_inicial.setCalendarPopup(True)
+        self.filtro_data_inicial.setDisplayFormat("dd/MM/yyyy")
+        self.filtro_data_inicial.setDate(QDate(2000, 1, 1))
+        self.filtro_data_inicial.setMinimumHeight(36)
+
+        self.filtro_data_final = QDateEdit()
+        self.filtro_data_final.setCalendarPopup(True)
+        self.filtro_data_final.setDisplayFormat("dd/MM/yyyy")
+        self.filtro_data_final.setDate(QDate.currentDate())
+        self.filtro_data_final.setMinimumHeight(36)
+
+        self.filtro_placa = QComboBox()
+        self.filtro_placa.addItem("Todas as placas", None)
+        self.filtro_placa.setMinimumHeight(36)
+
+        self.filtro_motorista = QComboBox()
+        self.filtro_motorista.addItem("Todos os motoristas", None)
+        self.filtro_motorista.setMinimumHeight(36)
+
+        grade_filtros.addWidget(rotulo_data_inicial, 0, 0)
+        grade_filtros.addWidget(rotulo_data_final, 0, 1)
+        grade_filtros.addWidget(rotulo_placa, 0, 2)
+        grade_filtros.addWidget(rotulo_motorista, 0, 3)
+
+        grade_filtros.addWidget(self.filtro_data_inicial, 1, 0)
+        grade_filtros.addWidget(self.filtro_data_final, 1, 1)
+        grade_filtros.addWidget(self.filtro_placa, 1, 2)
+        grade_filtros.addWidget(self.filtro_motorista, 1, 3)
+
+        self.botao_aplicar_filtros = QPushButton("Aplicar filtros")
+        self.botao_limpar_filtros = QPushButton("Limpar filtros")
+
+        self.botao_aplicar_filtros.setMinimumHeight(36)
+        self.botao_limpar_filtros.setMinimumHeight(36)
+
+        self.botao_aplicar_filtros.setStyleSheet("""
+            QPushButton {
+                background-color: #2563eb;
+                color: #ffffff;
+                border: none;
+                border-radius: 7px;
+                padding: 7px 14px;
+                font-weight: 700;
+            }
+            QPushButton:hover {
+                background-color: #1d4ed8;
+            }
+        """)
+
+        self.botao_limpar_filtros.setStyleSheet("""
+            QPushButton {
+                background-color: #f1f5f9;
+                color: #334155;
+                border: 1px solid #cbd5e1;
+                border-radius: 7px;
+                padding: 7px 14px;
+                font-weight: 600;
+            }
+            QPushButton:hover {
+                background-color: #e2e8f0;
+            }
+        """)
+
+        linha_botoes_filtros = QHBoxLayout()
+        linha_botoes_filtros.addWidget(self.botao_aplicar_filtros)
+        linha_botoes_filtros.addWidget(self.botao_limpar_filtros)
+        linha_botoes_filtros.addStretch()
+
+        grade_filtros.addLayout(linha_botoes_filtros, 2, 0, 1, 4)
+
+        self.layout_historico.addWidget(grupo_filtros)
+
+        # ACOES DOS ABASTECIMENTOS JA LANCADOS
+        linha_acoes_historico = QHBoxLayout()
+        linha_acoes_historico.setSpacing(8)
+        linha_acoes_historico.addStretch()
+
+        self.botao_detalhes_historico = QPushButton("Ver detalhes")
+        self.botao_editar_historico = QPushButton("Editar")
+        self.botao_excluir_historico = QPushButton("Excluir")
+
+        self.botao_detalhes_historico.setMinimumHeight(38)
+        self.botao_editar_historico.setMinimumHeight(38)
+        self.botao_excluir_historico.setMinimumHeight(38)
+
+        self.botao_detalhes_historico.setStyleSheet("""
+            QPushButton {
+                background-color: #eff6ff;
+                color: #1d4ed8;
+                border: 1px solid #bfdbfe;
+                border-radius: 7px;
+                padding: 7px 16px;
+                font-weight: 700;
+            }
+            QPushButton:hover {
+                background-color: #dbeafe;
+            }
+        """)
+
+        self.botao_editar_historico.setStyleSheet("""
+            QPushButton {
+                background-color: #2563eb;
+                color: #ffffff;
+                border: none;
+                border-radius: 7px;
+                padding: 7px 18px;
+                font-weight: 700;
+            }
+            QPushButton:hover {
+                background-color: #1d4ed8;
+            }
+        """)
+
+        self.botao_excluir_historico.setStyleSheet("""
+            QPushButton {
+                background-color: #fef2f2;
+                color: #b91c1c;
+                border: 1px solid #fecaca;
+                border-radius: 7px;
+                padding: 7px 16px;
+                font-weight: 700;
+            }
+            QPushButton:hover {
+                background-color: #fee2e2;
+            }
+        """)
+
+        linha_acoes_historico.addWidget(self.botao_detalhes_historico)
+        linha_acoes_historico.addWidget(self.botao_editar_historico)
+        linha_acoes_historico.addWidget(self.botao_excluir_historico)
+
+        self.layout_historico.addLayout(linha_acoes_historico)
 
         self.tabela = QTableWidget()
         self.tabela.setColumnCount(10)
@@ -529,6 +703,13 @@ class TelaAbastecimento(QWidget):
 
         botao_limpar.clicked.connect(self.limpar_formulario)
         botao_salvar.clicked.connect(self.registrar_abastecimento)
+        self.botao_editar_historico.clicked.connect(self.editar_abastecimento)
+        self.botao_detalhes_historico.clicked.connect(self.ver_detalhes_abastecimento)
+
+        self.botao_excluir_historico.clicked.connect(self.excluir_abastecimento)
+
+        self.botao_aplicar_filtros.clicked.connect(self.carregar_abastecimentos)
+        self.botao_limpar_filtros.clicked.connect(self.limpar_filtros_historico)
 
         self.carregar_opcoes()
         self.carregar_abastecimentos()
@@ -563,7 +744,33 @@ class TelaAbastecimento(QWidget):
             self.campo_motorista.addItem("Não informado", None)
 
             for motorista in motoristas:
-                self.campo_motorista.addItem(motorista.nome, motorista.id)
+                self.campo_motorista.addItem(
+                    motorista.nome,
+                    motorista.id,
+                )
+
+            # FILTRO DE PLACAS
+            self.filtro_placa.clear()
+            self.filtro_placa.addItem("Todas as placas", None)
+
+            for veiculo in veiculos:
+                self.filtro_placa.addItem(
+                    veiculo.placa,
+                    veiculo.id,
+                )
+
+            # FILTRO DE MOTORISTAS
+            self.filtro_motorista.clear()
+            self.filtro_motorista.addItem(
+                "Todos os motoristas",
+                None,
+            )
+
+            for motorista in motoristas:
+                self.filtro_motorista.addItem(
+                    motorista.nome,
+                    motorista.id,
+                )
 
         except Exception as erro:
             QMessageBox.critical(
@@ -608,30 +815,46 @@ class TelaAbastecimento(QWidget):
 
         total = (litros * valor_litro).quantize(Decimal("0.01"))
 
-        registro = Abastecimento(
-            data=self.campo_data.date().toPython(),
-            veiculo_id=veiculo_id,
-            motorista_id=motorista_id,
-            combustivel=self.campo_combustivel.currentText(),
-            posto=posto,
-            cidade_posto=cidade,
-            quilometragem=self.campo_km.value(),
-            litros=litros,
-            valor_litro=valor_litro,
-            valor_total=total,
-            observacao=(self.campo_observacao.text().strip() or None),
-        )
-
+        editando = self.abastecimento_editando_id is not None
         sessao = SessionLocal()
 
         try:
-            sessao.add(registro)
+            if editando:
+                registro = sessao.get(
+                    Abastecimento,
+                    self.abastecimento_editando_id,
+                )
+
+                if registro is None:
+                    QMessageBox.warning(
+                        self,
+                        "Registro não encontrado",
+                        "O abastecimento que você está editando não foi encontrado.",
+                    )
+                    return
+            else:
+                registro = Abastecimento()
+                sessao.add(registro)
+
+            registro.data = self.campo_data.date().toPython()
+            registro.veiculo_id = veiculo_id
+            registro.motorista_id = motorista_id
+            registro.combustivel = self.campo_combustivel.currentText()
+            registro.posto = posto
+            registro.cidade_posto = cidade
+            registro.quilometragem = self.campo_km.value()
+            registro.litros = litros
+            registro.valor_litro = valor_litro
+            registro.valor_total = total
+            registro.observacao = self.campo_observacao.text().strip() or None
+
             sessao.commit()
+
         except Exception as erro:
             sessao.rollback()
             QMessageBox.critical(
                 self,
-                "Erro ao registrar abastecimento",
+                "Erro ao salvar abastecimento",
                 f"Não foi possível salvar o abastecimento.\n\n{erro}",
             )
             return
@@ -640,10 +863,16 @@ class TelaAbastecimento(QWidget):
 
         QMessageBox.information(
             self,
-            "Abastecimento registrado",
-            "O abastecimento foi registrado com sucesso.",
+            "Abastecimento atualizado" if editando else "Abastecimento registrado",
+            (
+                "As alterações foram salvas com sucesso."
+                if editando
+                else "O abastecimento foi registrado com sucesso."
+            ),
         )
 
+        self.abastecimento_editando_id = None
+        self.botao_salvar.setText("Registrar abastecimento")
         self.limpar_formulario()
         self.carregar_abastecimentos()
 
@@ -651,7 +880,20 @@ class TelaAbastecimento(QWidget):
         sessao = SessionLocal()
 
         try:
-            registros = (
+            data_inicial = self.filtro_data_inicial.date().toPython()
+            data_final = self.filtro_data_final.date().toPython()
+            placa_id = self.filtro_placa.currentData()
+            motorista_id = self.filtro_motorista.currentData()
+
+            if data_inicial > data_final:
+                QMessageBox.warning(
+                    self,
+                    "Período inválido",
+                    "A data inicial não pode ser posterior à data final.",
+                )
+                return
+
+            consulta = (
                 sessao.query(Abastecimento, Veiculo, Motorista)
                 .join(
                     Veiculo,
@@ -661,12 +903,22 @@ class TelaAbastecimento(QWidget):
                     Motorista,
                     Abastecimento.motorista_id == Motorista.id,
                 )
-                .order_by(
-                    Abastecimento.data.desc(),
-                    Abastecimento.id.desc(),
+                .filter(
+                    Abastecimento.data >= data_inicial,
+                    Abastecimento.data <= data_final,
                 )
-                .all()
             )
+
+            if placa_id is not None:
+                consulta = consulta.filter(Abastecimento.veiculo_id == placa_id)
+
+            if motorista_id is not None:
+                consulta = consulta.filter(Abastecimento.motorista_id == motorista_id)
+
+            registros = consulta.order_by(
+                Abastecimento.data.desc(),
+                Abastecimento.id.desc(),
+            ).all()
 
             self.tabela.setRowCount(len(registros))
 
@@ -711,6 +963,408 @@ class TelaAbastecimento(QWidget):
         finally:
             sessao.close()
 
+    def ver_detalhes_abastecimento(self):
+        linha = self.tabela.currentRow()
+
+        if linha < 0:
+            QMessageBox.warning(
+                self,
+                "Nenhum abastecimento selecionado",
+                "Selecione um abastecimento no histórico.",
+            )
+            return
+
+        item = self.tabela.item(linha, 0)
+
+        if item is None:
+            return
+
+        abastecimento_id = item.data(Qt.UserRole)
+        sessao = SessionLocal()
+
+        try:
+            registro = sessao.get(
+                Abastecimento,
+                abastecimento_id,
+            )
+
+            if registro is None:
+                QMessageBox.warning(
+                    self,
+                    "Registro não encontrado",
+                    "O abastecimento não foi encontrado.",
+                )
+                return
+
+            veiculo = sessao.get(Veiculo, registro.veiculo_id)
+
+            motorista = (
+                sessao.get(Motorista, registro.motorista_id)
+                if registro.motorista_id is not None
+                else None
+            )
+
+            data_texto = registro.data.strftime("%d/%m/%Y")
+            placa = veiculo.placa if veiculo else "Não encontrado"
+            nome_motorista = motorista.nome if motorista else "Não informado"
+
+            km = Decimal(str(registro.quilometragem))
+            km_texto = (
+                f"{km:.0f} km" if km % 1 == 0 else f"{km:.1f}".replace(".", ",") + " km"
+            )
+
+            litros_texto = (
+                f"{Decimal(str(registro.litros)):.3f}".replace(".", ",") + " L"
+            )
+
+            valor_litro_texto = self.formatar_moeda(registro.valor_litro) + " / L"
+
+            valor_total_texto = self.formatar_moeda(registro.valor_total)
+
+            dados = [
+                ("Data", data_texto),
+                ("Veículo", placa),
+                ("Motorista", nome_motorista),
+                ("Combustível", registro.combustivel),
+                ("Posto", registro.posto),
+                ("Cidade", registro.cidade_posto),
+                ("Quilometragem", km_texto),
+                ("Quantidade", litros_texto),
+                ("Valor por litro", valor_litro_texto),
+            ]
+
+            observacao = registro.observacao or "Nenhuma observação registrada."
+
+        except Exception as erro:
+            QMessageBox.critical(
+                self,
+                "Erro ao consultar abastecimento",
+                f"Não foi possível carregar os detalhes.\n\n{erro}",
+            )
+            return
+        finally:
+            sessao.close()
+
+        # JANELA DE DETALHES
+        dialogo = QDialog(self)
+        dialogo.setWindowTitle("Detalhes do abastecimento")
+        dialogo.setMinimumSize(720, 560)
+        dialogo.resize(780, 610)
+
+        dialogo.setStyleSheet("""
+            QDialog {
+                background-color: #f8fafc;
+            }
+
+            QLabel#tituloDetalhes {
+                color: #0f172a;
+                font-size: 24px;
+                font-weight: 800;
+            }
+
+            QLabel#subtituloDetalhes {
+                color: #64748b;
+                font-size: 13px;
+                font-weight: 500;
+            }
+
+            QWidget#cartaoTotal {
+                background-color: #1d4ed8;
+                border-radius: 12px;
+            }
+
+            QLabel#rotuloTotalDetalhes {
+                color: #dbeafe;
+                font-size: 12px;
+                font-weight: 700;
+                background: transparent;
+            }
+
+            QLabel#valorTotalDetalhes {
+                color: #ffffff;
+                font-size: 28px;
+                font-weight: 800;
+                background: transparent;
+            }
+
+            QGroupBox {
+                background-color: #ffffff;
+                color: #0f172a;
+                border: 1px solid #d9dee7;
+                border-radius: 10px;
+                margin-top: 12px;
+                padding-top: 12px;
+                font-size: 14px;
+                font-weight: 700;
+            }
+
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 14px;
+                padding: 0 6px;
+            }
+
+            QLabel#rotuloCampoDetalhe {
+                color: #64748b;
+                font-size: 12px;
+                font-weight: 600;
+                background: transparent;
+            }
+
+            QLabel#valorCampoDetalhe {
+                color: #0f172a;
+                font-size: 14px;
+                font-weight: 700;
+                background: transparent;
+            }
+
+            QPushButton {
+                background-color: #2563eb;
+                color: #ffffff;
+                border: none;
+                border-radius: 7px;
+                padding: 9px 22px;
+                font-size: 14px;
+                font-weight: 700;
+            }
+
+            QPushButton:hover {
+                background-color: #1d4ed8;
+            }
+        """)
+
+        layout_dialogo = QVBoxLayout(dialogo)
+        layout_dialogo.setContentsMargins(22, 22, 22, 18)
+        layout_dialogo.setSpacing(12)
+
+        titulo = QLabel("Detalhes do abastecimento")
+        titulo.setObjectName("tituloDetalhes")
+
+        subtitulo = QLabel(f"Veículo {placa}  •  Data {data_texto}")
+        subtitulo.setObjectName("subtituloDetalhes")
+
+        layout_dialogo.addWidget(titulo)
+        layout_dialogo.addWidget(subtitulo)
+
+        # CARTAO DO VALOR TOTAL
+        cartao_total = QWidget()
+        cartao_total.setObjectName("cartaoTotal")
+
+        layout_total = QVBoxLayout(cartao_total)
+        layout_total.setContentsMargins(18, 14, 18, 14)
+        layout_total.setSpacing(4)
+
+        rotulo_total = QLabel("VALOR TOTAL DO ABASTECIMENTO")
+        rotulo_total.setObjectName("rotuloTotalDetalhes")
+
+        valor_total = QLabel(valor_total_texto)
+        valor_total.setObjectName("valorTotalDetalhes")
+
+        layout_total.addWidget(rotulo_total)
+        layout_total.addWidget(valor_total)
+
+        layout_dialogo.addWidget(cartao_total)
+
+        # DADOS DO ABASTECIMENTO
+        grupo_dados = QGroupBox("Informações do abastecimento")
+        grade_dados = QGridLayout(grupo_dados)
+        grade_dados.setContentsMargins(16, 22, 16, 14)
+        grade_dados.setHorizontalSpacing(18)
+        grade_dados.setVerticalSpacing(8)
+
+        for indice, (nome, valor) in enumerate(dados):
+            linha_campo = (indice // 3) * 2
+            coluna_campo = indice % 3
+
+            rotulo = QLabel(nome)
+            rotulo.setObjectName("rotuloCampoDetalhe")
+
+            conteudo = QLabel(str(valor))
+            conteudo.setObjectName("valorCampoDetalhe")
+            conteudo.setWordWrap(True)
+            conteudo.setMinimumHeight(28)
+
+            grade_dados.addWidget(
+                rotulo,
+                linha_campo,
+                coluna_campo,
+            )
+            grade_dados.addWidget(
+                conteudo,
+                linha_campo + 1,
+                coluna_campo,
+            )
+
+        for coluna in range(3):
+            grade_dados.setColumnStretch(coluna, 1)
+
+        layout_dialogo.addWidget(grupo_dados)
+
+        # OBSERVACOES
+        grupo_observacoes = QGroupBox("Observações")
+        layout_observacoes = QVBoxLayout(grupo_observacoes)
+        layout_observacoes.setContentsMargins(14, 20, 14, 12)
+
+        texto_observacao = QLabel(observacao)
+        texto_observacao.setObjectName("valorCampoDetalhe")
+        texto_observacao.setWordWrap(True)
+
+        layout_observacoes.addWidget(texto_observacao)
+        layout_dialogo.addWidget(grupo_observacoes)
+
+        # BOTAO FECHAR
+        linha_botoes = QHBoxLayout()
+        linha_botoes.addStretch()
+
+        botao_fechar = QPushButton("Fechar")
+        botao_fechar.setMinimumWidth(120)
+        botao_fechar.setMinimumHeight(40)
+        botao_fechar.clicked.connect(dialogo.accept)
+
+        linha_botoes.addWidget(botao_fechar)
+        layout_dialogo.addLayout(linha_botoes)
+
+        dialogo.exec()
+
+    def excluir_abastecimento(self):
+        linha = self.tabela.currentRow()
+
+        if linha < 0:
+            QMessageBox.warning(
+                self,
+                "Nenhum abastecimento selecionado",
+                "Selecione um abastecimento no histórico.",
+            )
+            return
+
+        item = self.tabela.item(linha, 0)
+        if item is None:
+            return
+
+        abastecimento_id = item.data(Qt.UserRole)
+
+        confirmacao = QMessageBox.question(
+            self,
+            "Confirmar exclusão",
+            "Deseja realmente excluir este abastecimento?\n\n"
+            "Esta ação não pode ser desfeita.",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+
+        if confirmacao != QMessageBox.Yes:
+            return
+
+        sessao = SessionLocal()
+
+        try:
+            registro = sessao.get(Abastecimento, abastecimento_id)
+
+            if registro is None:
+                QMessageBox.warning(
+                    self,
+                    "Registro não encontrado",
+                    "O abastecimento não foi encontrado.",
+                )
+                return
+
+            sessao.delete(registro)
+            sessao.commit()
+
+        except Exception as erro:
+            sessao.rollback()
+            QMessageBox.critical(
+                self,
+                "Erro ao excluir abastecimento",
+                f"Não foi possível excluir o abastecimento.\n\n{erro}",
+            )
+            return
+        finally:
+            sessao.close()
+
+        QMessageBox.information(
+            self,
+            "Abastecimento excluído",
+            "O registro foi excluído com sucesso.",
+        )
+
+        self.carregar_abastecimentos()
+
+    def editar_abastecimento(self):
+        linha = self.tabela.currentRow()
+
+        if linha < 0:
+            QMessageBox.warning(
+                self,
+                "Nenhum abastecimento selecionado",
+                "Selecione um abastecimento no histórico para editar.",
+            )
+            return
+
+        item = self.tabela.item(linha, 0)
+
+        if item is None:
+            return
+
+        abastecimento_id = item.data(Qt.UserRole)
+        sessao = SessionLocal()
+
+        try:
+            registro = sessao.get(Abastecimento, abastecimento_id)
+
+            if registro is None:
+                QMessageBox.warning(
+                    self,
+                    "Registro não encontrado",
+                    "Esse abastecimento não foi encontrado no banco de dados.",
+                )
+                return
+
+            self.abastecimento_editando_id = registro.id
+
+            self.campo_data.setDate(
+                QDate(
+                    registro.data.year,
+                    registro.data.month,
+                    registro.data.day,
+                )
+            )
+
+            indice_veiculo = self.campo_veiculo.findData(registro.veiculo_id)
+            if indice_veiculo >= 0:
+                self.campo_veiculo.setCurrentIndex(indice_veiculo)
+
+            indice_motorista = self.campo_motorista.findData(registro.motorista_id)
+            if indice_motorista >= 0:
+                self.campo_motorista.setCurrentIndex(indice_motorista)
+
+            indice_combustivel = self.campo_combustivel.findText(registro.combustivel)
+            if indice_combustivel < 0:
+                self.campo_combustivel.addItem(registro.combustivel)
+                indice_combustivel = self.campo_combustivel.findText(
+                    registro.combustivel
+                )
+            self.campo_combustivel.setCurrentIndex(indice_combustivel)
+
+            self.campo_posto.setText(registro.posto)
+            self.campo_cidade.setText(registro.cidade_posto)
+            self.campo_km.setValue(float(registro.quilometragem))
+            self.campo_litros.setValue(float(registro.litros))
+            self.campo_valor_litro.setValue(float(registro.valor_litro))
+            self.campo_observacao.setText(registro.observacao or "")
+
+            self.botao_salvar.setText("Salvar alterações")
+            self.abas.setCurrentWidget(self.aba_lancamento)
+
+        except Exception as erro:
+            QMessageBox.critical(
+                self,
+                "Erro ao carregar abastecimento",
+                f"Não foi possível carregar os dados para edição.\n\n{erro}",
+            )
+        finally:
+            sessao.close()
+
     def limpar_formulario(self):
         self.campo_data.setDate(QDate.currentDate())
         self.campo_veiculo.setCurrentIndex(0)
@@ -722,3 +1376,10 @@ class TelaAbastecimento(QWidget):
         self.campo_litros.setValue(0)
         self.campo_valor_litro.setValue(0)
         self.campo_observacao.clear()
+
+    def limpar_filtros_historico(self):
+        self.filtro_data_inicial.setDate(QDate(2000, 1, 1))
+        self.filtro_data_final.setDate(QDate.currentDate())
+        self.filtro_placa.setCurrentIndex(0)
+        self.filtro_motorista.setCurrentIndex(0)
+        self.carregar_abastecimentos()
