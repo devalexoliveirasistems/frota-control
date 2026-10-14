@@ -14,6 +14,7 @@ from telas.fretes import Fretes
 from telas.motoristas import Motoristas
 from telas.documentos import Documentos
 from telas.abastecimento import TelaAbastecimento
+from telas.simulador import SimuladorFretes
 
 
 class MainWindow(QMainWindow):
@@ -130,6 +131,7 @@ class MainWindow(QMainWindow):
         botao_dashboard = QPushButton("Dashboard")
         botao_frota = QPushButton("Frota")
         botao_fretes = QPushButton("Fretes")
+        botao_simulador = QPushButton("Simulador de Frete")
         botao_motoristas = QPushButton("Motoristas")
         botao_documentos = QPushButton("Documentos")
         botao_manutencao = QPushButton("Manutenção")
@@ -139,6 +141,7 @@ class MainWindow(QMainWindow):
         menu_layout.addWidget(botao_dashboard)
         menu_layout.addWidget(botao_frota)
         menu_layout.addWidget(botao_fretes)
+        menu_layout.addWidget(botao_simulador)
         menu_layout.addWidget(botao_motoristas)
         menu_layout.addWidget(botao_documentos)
         menu_layout.addWidget(botao_manutencao)
@@ -153,6 +156,7 @@ class MainWindow(QMainWindow):
             botao_dashboard,
             botao_frota,
             botao_fretes,
+            botao_simulador,
             botao_motoristas,
             botao_documentos,
             botao_abastecimento,
@@ -170,6 +174,12 @@ class MainWindow(QMainWindow):
 
         botao_fretes.clicked.connect(
             lambda checked=False: self.ir_para_tela(self.tela_fretes, botao_fretes)
+        )
+
+        botao_simulador.clicked.connect(
+            lambda checked=False: self.ir_para_tela(
+                self.tela_simulador, botao_simulador
+            )
         )
 
         botao_motoristas.clicked.connect(
@@ -199,6 +209,7 @@ class MainWindow(QMainWindow):
         self.tela_dashboard = Dashboard()
         self.tela_frota = Frota()
         self.tela_fretes = Fretes()
+        self.tela_simulador = SimuladorFretes()
 
         self.tela_motoristas = Motoristas()
         self.tela_documentos = Documentos()
@@ -207,6 +218,7 @@ class MainWindow(QMainWindow):
         self.stack.addWidget(self.tela_dashboard)
         self.stack.addWidget(self.tela_frota)
         self.stack.addWidget(self.tela_fretes)
+        self.stack.addWidget(self.tela_simulador)
         self.stack.addWidget(self.tela_motoristas)
         self.stack.addWidget(self.tela_documentos)
         self.stack.addWidget(self.tela_abastecimento)
