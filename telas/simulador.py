@@ -389,13 +389,15 @@ class SimuladorFretes(QWidget):
 
         self.km_vazio = self.criar_campo(1, 10, sufixo=" km")
         self.consumo_vazio = self.criar_campo(2, 0.1, sufixo=" km/L")
-        self.preco_diesel = self.criar_campo(3, 0.1, prefixo="R$ ")
+        self.preco_diesel_vazio = self.criar_campo(3, 0.1, prefixo="R$ ")
+
+        self.preco_diesel_frete = self.criar_campo(3, 0.1, prefixo="R$ ")
         self.pedagios_vazio = self.criar_campo(2, 10, prefixo="R$ ")
 
         campos_vazios = [
             ("Distância até o embarque", self.km_vazio),
             ("Consumo médio vazio", self.consumo_vazio),
-            ("Preço do diesel por litro", self.preco_diesel),
+            ("Preço do diesel por litro", self.preco_diesel_vazio),
             ("Pedágios até o embarque", self.pedagios_vazio),
         ]
 
@@ -420,6 +422,7 @@ class SimuladorFretes(QWidget):
             ("Valor bruto do frete", self.frete),
             ("Distância do trajeto contratado", self.km_carregado),
             ("Consumo médio carregado", self.consumo_carregado),
+            ("Preço do diesel por litro", self.preco_diesel_frete),
             ("Pedágios do trajeto contratado", self.pedagios_frete),
             ("Outras despesas da operação", self.outras_despesas),
             ("Comissão do motorista", self.comissao),
@@ -614,7 +617,8 @@ class SimuladorFretes(QWidget):
         self.campos_entrada = [
             self.km_vazio,
             self.consumo_vazio,
-            self.preco_diesel,
+            self.preco_diesel_vazio,
+            self.preco_diesel_frete,
             self.pedagios_vazio,
             self.frete,
             self.km_carregado,
@@ -678,7 +682,8 @@ class SimuladorFretes(QWidget):
     def calcular(self, *_):
         km_vazio = self.km_vazio.value()
         consumo_vazio = self.consumo_vazio.value()
-        preco_diesel = self.preco_diesel.value()
+        preco_diesel_vazio = self.preco_diesel_vazio.value()
+        preco_diesel_frete = self.preco_diesel_frete.value()
         pedagio_vazio = self.pedagios_vazio.value()
 
         frete = self.frete.value()
@@ -688,30 +693,29 @@ class SimuladorFretes(QWidget):
         outras = self.outras_despesas.value()
         percentual = self.comissao.value()
 
-        if km_vazio > 0 and consumo_vazio <= 0:
-            self.mostrar_indisponivel()
-            self.aviso.setText("Informe o consumo médio do caminhão vazio.")
-            return
-
-        if km_carregado > 0 and consumo_carregado <= 0:
-            self.mostrar_indisponivel()
-            self.aviso.setText("Informe o consumo médio do caminhão carregado.")
-            return
-
         distancia_total = km_vazio + km_carregado
 
-        if distancia_total > 0 and preco_diesel <= 0:
-            self.mostrar_indisponivel()
-            self.aviso.setText("Informe o preço do diesel por litro.")
-            return
+        pendencias = []
+
+        if km_vazio > 0 and consumo_vazio <= 0:
+            pendencias.append("Informe o consumo médio vazio.")
+
+        if km_carregado > 0 and consumo_carregado <= 0:
+            pendencias.append("Informe o consumo médio carregado.")
+
+        if km_vazio > 0 and preco_diesel_vazio <= 0:
+            pendencias.append("Informe o preço do diesel do deslocamento vazio.")
+
+        if km_carregado > 0 and preco_diesel_frete <= 0:
+            pendencias.append("Informe o preço do diesel do frete contratado.")
 
         litros_vazio = km_vazio / consumo_vazio if consumo_vazio > 0 else 0
         litros_carregado = (
             km_carregado / consumo_carregado if consumo_carregado > 0 else 0
         )
 
-        diesel_vazio = litros_vazio * preco_diesel
-        diesel_carregado = litros_carregado * preco_diesel
+        diesel_vazio = litros_vazio * preco_diesel_vazio
+        diesel_carregado = litros_carregado * preco_diesel_frete
         diesel_total = diesel_vazio + diesel_carregado
 
         custo_chegada = diesel_vazio + pedagio_vazio
