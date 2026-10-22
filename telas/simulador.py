@@ -25,6 +25,7 @@ from PySide6.QtGui import (
 )
 
 from PySide6.QtWidgets import QFileDialog, QMessageBox
+from PySide6.QtWidgets import QComboBox
 
 
 class CampoNumerico(QDoubleSpinBox):
@@ -207,6 +208,39 @@ class SimuladorFretes(QWidget):
                 min-height: 25px;
                 font-size: 16px;
                 font-weight: 800;
+            }
+
+            QComboBox {
+                background-color: #ffffff;
+                color: #0b1220;
+                border: 1px solid #94a3b8;
+                border-radius: 7px;
+                padding: 8px;
+                min-height: 25px;
+                font-size: 16px;
+                font-weight: 800;
+            }
+
+            QComboBox:hover {
+                border: 1px solid #64748b;
+            }
+
+            QComboBox:focus {
+                border: 1px solid #2563eb;
+                background-color: #f8fbff;
+            }
+
+            QComboBox::drop-down {
+                border: none;
+                width: 28px;
+            }
+
+            QComboBox QAbstractItemView {
+                background-color: #ffffff;
+                color: #0f172a;
+                border: 1px solid #cbd5e1;
+                selection-background-color: #2563eb;
+                selection-color: #ffffff;
             }
 
             QDoubleSpinBox:focus {
@@ -415,6 +449,14 @@ class SimuladorFretes(QWidget):
         self.consumo_carregado = self.criar_campo(2, 0.1, sufixo=" km/L")
         self.pedagios_frete = self.criar_campo(2, 10, prefixo="R$ ")
         self.outras_despesas = self.criar_campo(2, 10, prefixo="R$ ")
+        self.tipo_comissao = QComboBox()
+        self.tipo_comissao.addItems(
+            [
+                "Percentual do frete",
+                "Valor fixo por viagem",
+                "Valor por quilômetro rodado",
+            ]
+        )
         self.comissao = self.criar_campo(2, 0.5, sufixo=" %")
         self.comissao.setValue(11)
 
@@ -425,6 +467,7 @@ class SimuladorFretes(QWidget):
             ("Preço do diesel por litro", self.preco_diesel_frete),
             ("Pedágios do trajeto contratado", self.pedagios_frete),
             ("Outras despesas da operação", self.outras_despesas),
+            ("Forma de pagamento da comissão", self.tipo_comissao),
             ("Comissão do motorista", self.comissao),
         ]
 
@@ -632,6 +675,7 @@ class SimuladorFretes(QWidget):
             campo.valueChanged.connect(self.calcular)
 
         botao_limpar.clicked.connect(self.limpar)
+        self.tipo_comissao.currentIndexChanged.connect(self.atualizar_formato_comissao)
         self.botao_compartilhar.clicked.connect(self.compartilhar_resultado)
         botao_pdf.clicked.connect(self.exportar_pdf)
 
@@ -723,8 +767,20 @@ class SimuladorFretes(QWidget):
 
         # A comissão é calculada sobre o frete descontados
         # os pedágios do trajeto contratado.
+        tipo = self.tipo_comissao.currentIndex()
         base_comissao = max(frete - pedagio_frete, 0)
-        comissao = base_comissao * percentual / 100
+
+        if tipo == 0:
+            # Percentual do frete
+            comissao = base_comissao * percentual / 100
+
+        elif tipo == 1:
+            # Valor fixo por viagem
+            comissao = percentual if frete > 0 else 0
+
+        else:
+            # Valor por quilômetro rodado
+            comissao = percentual * distancia_total if frete > 0 else 0
 
         # Os custos do deslocamento vazio são pagos pela empresa.
         custo_total = diesel_total + pedagios_total + comissao + outras
@@ -1278,6 +1334,29 @@ class SimuladorFretes(QWidget):
                 "Erro ao gerar PDF",
                 f"Não foi possível gerar o relatório:\n{erro}",
             )
+
+    def atualizar_formato_comissao(self, *_):
+        tipo = self.tipo_comissao.currentIndex()
+
+        if tipo == 0:
+            # Percentual do frete
+            self.comissao.setPrefix("")
+            self.comissao.setSuffix(" %")
+            self.comissao.setSingleStep(0.5)
+
+        elif tipo == 1:
+            # Valor fixo por viagem
+            self.comissao.setPrefix("R$ ")
+            self.comissao.setSuffix("")
+            self.comissao.setSingleStep(10)
+
+        else:
+            # Valor por quilômetro rodado
+            self.comissao.setPrefix("R$ ")
+            self.comissao.setSuffix(" /km")
+            self.comissao.setSingleStep(0.10)
+
+        self.calcular()
 
     def limpar(self):
         for campo in self.campos_entrada:
