@@ -975,7 +975,7 @@ class Fretes(QWidget):
         # FILTROS
         # ==================================
 
-        grupo_filtros_fretes = QGroupBox("Filtrar fretes")
+        grupo_filtros_fretes = QGroupBox()
         grupo_filtros_fretes.setStyleSheet("""
             QGroupBox {
                 color: #0f172a;
@@ -989,9 +989,12 @@ class Fretes(QWidget):
             }
 
             QGroupBox::title {
-                subcontrol-origin: margin;
+                subcontrol-origin: padding;
+                subcontrol-position: top left;
                 left: 14px;
-                padding: 0 7px;
+                top: 8px;
+                padding: 0 6px;
+                background-color: #ffffff;
             }
         """)
 
@@ -1002,7 +1005,7 @@ class Fretes(QWidget):
         estilo_label_filtro = """
             QLabel {
                 color: #1f2937;
-                font-size: 13px;
+                font-size: 15px;
                 font-weight: 700;
             }
         """
@@ -1016,9 +1019,16 @@ class Fretes(QWidget):
         coluna_motorista.addWidget(label_motorista)
 
         self.filtro_motorista = QComboBox()
-        self.filtro_motorista.setMinimumWidth(190)
-        self.filtro_motorista.setMaximumWidth(220)
-        self.filtro_motorista.setMinimumHeight(36)
+        self.filtro_motorista.setStyleSheet("""
+            QComboBox {
+                font-size: 15px;
+                font-weight: 700;
+                color: #111827;
+            }
+        """)
+        self.filtro_motorista.setMinimumWidth(210)
+        self.filtro_motorista.setMaximumWidth(240)
+        self.filtro_motorista.setMinimumHeight(44)
         self.filtro_motorista.addItem("Todos", None)
         self.filtro_motorista.currentIndexChanged.connect(self.aplicar_filtros_fretes)
         coluna_motorista.addWidget(self.filtro_motorista)
@@ -1034,9 +1044,16 @@ class Fretes(QWidget):
         coluna_placa.addWidget(label_placa)
 
         self.filtro_placa = QComboBox()
-        self.filtro_placa.setMinimumWidth(120)
-        self.filtro_placa.setMaximumWidth(140)
-        self.filtro_placa.setMinimumHeight(36)
+        self.filtro_placa.setStyleSheet("""
+            QComboBox {
+                font-size: 15px;
+                font-weight: 700;
+                color: #111827;
+            }
+        """)
+        self.filtro_placa.setMinimumWidth(140)
+        self.filtro_placa.setMaximumWidth(160)
+        self.filtro_placa.setMinimumHeight(44)
         self.filtro_placa.setSizeAdjustPolicy(
             QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon
         )
@@ -1056,10 +1073,17 @@ class Fretes(QWidget):
         coluna_data_inicial.addWidget(label_data_inicial)
 
         self.filtro_fretes_data_inicial = QDateEdit()
+        self.filtro_fretes_data_inicial.setStyleSheet("""
+            QDateEdit {
+                font-size: 15px;
+                font-weight: 700;
+                color: #111827;
+            }
+        """)
         self.filtro_fretes_data_inicial.setCalendarPopup(True)
-        self.filtro_fretes_data_inicial.setMinimumWidth(135)
-        self.filtro_fretes_data_inicial.setMaximumWidth(150)
-        self.filtro_fretes_data_inicial.setMinimumHeight(36)
+        self.filtro_fretes_data_inicial.setMinimumWidth(150)
+        self.filtro_fretes_data_inicial.setMaximumWidth(165)
+        self.filtro_fretes_data_inicial.setMinimumHeight(44)
         self.filtro_fretes_data_inicial.setDate(QDate.currentDate().addDays(-30))
         self.filtro_fretes_data_inicial.dateChanged.connect(self.aplicar_filtros_fretes)
         coluna_data_inicial.addWidget(self.filtro_fretes_data_inicial)
@@ -1075,10 +1099,17 @@ class Fretes(QWidget):
         coluna_data_final.addWidget(label_data_final)
 
         self.filtro_fretes_data_final = QDateEdit()
+        self.filtro_fretes_data_final.setStyleSheet("""
+            QDateEdit {
+                font-size: 15px;
+                font-weight: 700;
+                color: #111827;
+            }
+        """)
         self.filtro_fretes_data_final.setCalendarPopup(True)
-        self.filtro_fretes_data_final.setMinimumWidth(135)
-        self.filtro_fretes_data_final.setMaximumWidth(150)
-        self.filtro_fretes_data_final.setMinimumHeight(36)
+        self.filtro_fretes_data_final.setMinimumWidth(150)
+        self.filtro_fretes_data_final.setMaximumWidth(165)
+        self.filtro_fretes_data_final.setMinimumHeight(44)
         self.filtro_fretes_data_final.setDate(QDate.currentDate())
         self.filtro_fretes_data_final.dateChanged.connect(self.aplicar_filtros_fretes)
         coluna_data_final.addWidget(self.filtro_fretes_data_final)
@@ -1088,8 +1119,8 @@ class Fretes(QWidget):
         # LIMPAR FILTROS
         botao_limpar_filtros = QPushButton("Limpar filtros")
         botao_limpar_filtros.setMinimumWidth(115)
-        botao_limpar_filtros.setMinimumHeight(36)
-        botao_limpar_filtros.setMaximumHeight(38)
+        botao_limpar_filtros.setMinimumHeight(44)
+        botao_limpar_filtros.setMaximumHeight(46)
 
         botao_limpar_filtros.setStyleSheet("""
             QPushButton {
@@ -1114,7 +1145,9 @@ class Fretes(QWidget):
 
         botao_limpar_filtros.clicked.connect(self.limpar_filtros_fretes)
 
-        linha_filtros.addWidget(botao_limpar_filtros)
+        linha_filtros.addWidget(
+            botao_limpar_filtros, alignment=Qt.AlignmentFlag.AlignBottom
+        )
 
         # INDICADORES
         linha_filtros.addStretch()
@@ -1146,6 +1179,28 @@ class Fretes(QWidget):
             }
         """)
         linha_filtros.addWidget(self.valor_valor_fretes_filtrados)
+
+        titulo_filtros = QLabel("⌕  FILTRAR FRETES")
+        titulo_filtros.setStyleSheet("""
+            QLabel {
+                color: #334155;
+                font-size: 14px;
+                font-weight: 800;
+                letter-spacing: 1px;
+                padding: 10px 12px;
+                border-left: 3px solid transparent;
+                border-radius: 6px;
+                background-color: transparent;
+            }
+
+            QLabel:hover {
+                color: #2563eb;
+                background-color: #eff6ff;
+                border-left: 3px solid #3b82f6;
+            }
+        """)
+
+        layout_fretes.addWidget(titulo_filtros)
 
         layout_fretes.addWidget(grupo_filtros_fretes)
 
@@ -1404,7 +1459,8 @@ class Fretes(QWidget):
                 padding: 4px 8px;
                 background-color: #ffffff;
                 color: #111827;
-                font-size: 13px;
+                font-size: 15px;
+                font-weight: 700;
             }
 
             QComboBox:hover, QDateEdit:hover {
@@ -1886,8 +1942,6 @@ class Fretes(QWidget):
         self.filtro_data_inicial.dateChanged.connect(self.carregar_resumo)
         coluna_data_inicial.addWidget(self.filtro_data_inicial)
 
-        linha_filtros.addLayout(coluna_data_inicial)
-
         # DATA FINAL
         coluna_data_final = QVBoxLayout()
         coluna_data_final.setSpacing(2)
@@ -1904,8 +1958,6 @@ class Fretes(QWidget):
         self.filtro_data_final.setDate(QDate.currentDate())
         self.filtro_data_final.dateChanged.connect(self.carregar_resumo)
         coluna_data_final.addWidget(self.filtro_data_final)
-
-        linha_filtros.addLayout(coluna_data_final)
 
         # ----------------------------------------------------------
         # MOTORISTA
@@ -1955,8 +2007,6 @@ class Fretes(QWidget):
         self.filtro_resumo_placa.addItem("Todas", None)
         self.filtro_resumo_placa.currentIndexChanged.connect(self.carregar_resumo)
         coluna_placa.addWidget(self.filtro_resumo_placa)
-
-        linha_filtros.addLayout(coluna_placa)
 
         # ----------------------------------------------------------
         # BOTÃO LIMPAR
