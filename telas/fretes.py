@@ -140,6 +140,7 @@ class Fretes(QWidget):
                 background-color: #f3f4f6;
                 color: #9ca3af;
             }
+
         """
 
         # ==================================
@@ -149,6 +150,7 @@ class Fretes(QWidget):
         self.campo_dia = QDateEdit()
         self.campo_dia.setCalendarPopup(True)
         self.campo_dia.setDate(QDate.currentDate())
+        self.campo_dia.setMinimumHeight(38)
 
         self.campo_os = QLineEdit()
         self.campo_os.setPlaceholderText("N° Contrato")
@@ -259,7 +261,30 @@ class Fretes(QWidget):
         ]:
             campo.setStyleSheet(estilo_campo)
 
-        self.campo_dia.setStyleSheet(estilo_campo)
+        for campo in [
+            self.campo_dia,
+            self.campo_placa,
+            self.campo_motorista,
+            self.campo_status,
+        ]:
+            campo.setStyleSheet("""
+                QComboBox, QDateEdit {
+                    min-height: 37px;
+                    padding: 6px 10px;
+                    font-size: 13px;
+                    font-weight: 700;
+                    color: #111827;
+                }
+            """)
+
+        # Ajustes dos campos de seleção
+        for campo in [
+            self.campo_dia,
+            self.campo_placa,
+            self.campo_motorista,
+            self.campo_status,
+        ]:
+            campo.setMinimumHeight(39)
 
         # Ordem de navegação pelo formulário
         self.setTabOrder(self.campo_os, self.campo_dia)
@@ -506,9 +531,7 @@ class Fretes(QWidget):
                     color: #374151;
                 }
 
-                QLineEdit,
-                QComboBox,
-                QDateEdit {
+                QLineEdit {
                     background-color: #ffffff;
                     border: 1px solid #d9dee7;
                     border-radius: 7px;
@@ -520,16 +543,11 @@ class Fretes(QWidget):
                     font-weight: 500;
                 }
 
-
-                QLineEdit:focus,
-                QComboBox:focus,
-                QDateEdit:focus {
+                QLineEdit:focus {
                     border: 1px solid #2563eb;
                 }
 
-                QLineEdit:hover,
-                QComboBox:hover,
-                QDateEdit:hover {
+                QLineEdit:hover {
                     border: 1px solid #9ca3af;
                 }
 
@@ -2371,6 +2389,12 @@ class Fretes(QWidget):
 
             QComboBox:focus {{
                 border: 1px solid {texto};
+            }}
+
+            QComboBox::drop-down {{
+                border: none;
+                background: transparent;
+                width: 25px;
             }}
         """)
 
